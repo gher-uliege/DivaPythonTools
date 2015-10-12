@@ -1,7 +1,8 @@
 # diva_plot_UV.py
 # 
-# plot advection
+# plot advection velocity field
 #
 from GHERFormat import GHERFile
-datafile='fieldgher.anl'
+
+datafile = 'fieldgher.anl'
 data2 = GHERFile(datafile).load()

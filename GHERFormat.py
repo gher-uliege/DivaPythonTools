@@ -25,12 +25,12 @@ import unittest
 class GHERFile(object):
     '''Class representing a GHER file'''
 
-    def __init__(self, fileobj, mode = 'r', endianess='big'):
+    def __init__(self, fileobj, mode='r', endianess='big'):
         if isinstance(fileobj, str):
             self.file = open(fileobj, mode)
         else:
             self.file = fileobj
-        
+
         self.mode = mode
         self.endianess = endianess
 
@@ -66,7 +66,7 @@ class GHERFile(object):
             vtype = float64
 
         # number of complete records
-        nrec = numpy.fix(numpy.prod(shape)/nbmots)
+        nrec = numpy.fix(numpy.prod(shape) / nbmots)
 
         # number of values on last incomplote record
         irec = numpy.prod(shape) - nbmots * nrec
@@ -78,48 +78,45 @@ class GHERFile(object):
         # load all full records including leading and tailing 4 byte integer
         # for efficiency these integers are read as two floats or one double
 
-        if iprec == 4: 
-            data = numpy.fromfile(self.file, dtype=vtype, count=nrec*(nbmots+2))
-            data = data.reshape(nbmots+2, nrec)
+        if iprec == 4:
+            data = numpy.fromfile(self.file, dtype=vtype, count=nrec * (nbmots + 2))
+            data = data.reshape(nbmots + 2, nrec)
         else:
-            data = numpy.fromfile(self.file, dtype=vtype, count=nrec*(nbmots+1))
-            data = data.reshape(nbmots+1, nrec)
+            data = numpy.fromfile(self.file, dtype=vtype, count=nrec * (nbmots + 1))
+            data = data.reshape(nbmots + 1, nrec)
 
-        
         data2 = numpy.fromfile(self.file, dtype=vtype, count=irec)
-        
+
         # remove leading and tailing 4 byte integer
 
         data = numpy.concatenate(
-            (data[0:nbmots,:].flatten('C'),
+            (data[0:nbmots, :].flatten('C'),
              data2))
 
         return (shape, valex, data)
-        
+
     def load(self):
         '''Loads a GHER file. The data is returned as a masked numpy array.'''
         (shape, valex, data) = self.read()
-        #print (shape, valex, data)
+        # print (shape, valex, data)
         data = data.reshape(shape[::-1])
-        data = numpy.ma.masked_values(data, value = valex)
+        data = numpy.ma.masked_values(data, value=valex)
         return data
 
-    
-    def write(self, data, shape, valex = 9999, iprec = 4):
+    def write(self, data, shape, valex=9999, iprec=4):
         '''Write data to a file in the GHER format (low-level API)'''
-
 
         if len(shape) == 1:
             shape = [shape[0], 1, 1]
         elif len(shape) == 2:
             shape = [shape[0], shape[1], 1]
-        
+
         nbmots = 1024
         shape = numpy.array(shape)
         numel = numpy.prod(shape)
 
-        nrec = numpy.fix(numel/nbmots)
-        irec = numel-nbmots*nrec
+        nrec = numpy.fix(numel / nbmots)
+        irec = numel - nbmots * nrec
         ide = 0
 
         if any(shape < 0):
@@ -127,9 +124,9 @@ class GHERFile(object):
             irec = 4
         else:
             if len(data) != numel:
-                raise Exception('number of elements in array is ' + 
-                                'inconsitent with its shape')        
-        
+                raise Exception('number of elements in array is ' +
+                                'inconsitent with its shape')
+
         if self.endianess == 'big':
             int32 = numpy.dtype('>i')
             float32 = numpy.dtype('>f')
@@ -142,13 +139,11 @@ class GHERFile(object):
         def _write(value, dtype):
             '''writes a value of type dtype to file object'''
             self.file.write(numpy.array(value, dtype).tostring())
-            
+
         # header
 
         for i in range(10):
             _write([0, 0], int32)
-
-
 
         _write(24, int32)
         _write(shape, int32)
@@ -157,56 +152,51 @@ class GHERFile(object):
         _write(valex, float32)
         _write(24, int32)
 
-
         if iprec == 4:
             vtype = float32
         else:
             vtype = float64
-        
-            
+
         for i in range(nrec):
-            _write(4*nbmots, int32)
-            _write(data[ide:ide+nbmots], vtype)
-            _write(4*nbmots, int32)
+            _write(4 * nbmots, int32)
+            _write(data[ide:ide + nbmots], vtype)
+            _write(4 * nbmots, int32)
             ide = ide + nbmots
 
-
-        _write(4*irec, int32)
-        _write(data[ide:ide+irec], vtype)
-        _write(4*irec, int32)
+        _write(4 * irec, int32)
+        _write(data[ide:ide + irec], vtype)
+        _write(4 * irec, int32)
 
         self.file.close()
 
-    def save(self, data, valex = 9999., iprec = 4):
+    def save(self, data, valex=9999., iprec=4):
         '''Save a GHER file. The data is provided as a masked numpy array.'''
-        
+
         shape = numpy.array(data).shape
-        if hasattr(data,'fill_value'):
+        if hasattr(data, 'fill_value'):
             data.fill_value = valex
             data = data.filled()
 
         self.write(data.flatten(), shape, valex, iprec)
-        
 
-    
+
 class TestGHERFile(unittest.TestCase):
     '''Unittest class for GHERFile class'''
 
-#    def setUp(self):
-#        pass
+    #    def setUp(self):
+    #        pass
 
-#     def test_loading(self):
-#         mask = '/var/www/web-vis/test.dat'
-#         data = GHERFile(mask).load()
-#         print data[2,1,1]
+    #     def test_loading(self):
+    #         mask = '/var/www/web-vis/test.dat'
+    #         data = GHERFile(mask).load()
+    #         print data[2,1,1]
 
 
     def test_save(self):
         '''Test case for saving and loading a vector of data in a GHER file'''
-        data = numpy.array(range(2*3*4))
+        data = numpy.array(range(2 * 3 * 4))
 
-
-        GHERFile('testpy.dat','w').save(data)
+        GHERFile('testpy.dat', 'w').save(data)
 
         data2 = GHERFile('testpy.dat').load()
 
@@ -222,8 +212,7 @@ class TestGHERFile(unittest.TestCase):
 
         GHERFile('testpy.dat', 'w').write(data, shape)
 
-    
-    
+
 if __name__ == "__main__":
     suite = unittest.TestLoader().loadTestsFromTestCase(TestGHERFile)
     suite.debug()
