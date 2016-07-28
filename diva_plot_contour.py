@@ -1,11 +1,12 @@
 #!/usr/bin/env python
+'''
+diva_plot_contour.py
 
-# diva_plot_contour.py
-#
-# Plot the selected contour
-#
-# http://modb.oce.ulg.ac.be/mediawiki/index.php/Diva_python
-# ------------------------------------------------------------------------------
+Provide an example of how to plot a given contour selected contour
+on a map using the Basemap module
+
+http://modb.oce.ulg.ac.be/mediawiki/index.php/Diva_python
+'''
 
 import os
 import numpy as np
@@ -17,7 +18,7 @@ import linecache
 # User options
 # -------------
 
-# Resolution for coastline 
+# Resolution for coastline
 basemap_resolution = 'l'
 
 # File and directory names
@@ -30,7 +31,7 @@ figbasename = 'contour_ex_py'
 figtype = '.eps'
 figname = figdir + figbasename + figtype
 
-# Region of interest        
+# Region of interest
 lonmin = -7.
 lonmax = 38.
 latmin = 30.
@@ -62,7 +63,7 @@ ax = fig.add_subplot(111)
 
 m = Basemap(projection='merc', llcrnrlon=lonmin, llcrnrlat=latmin,
             urcrnrlon=lonmax, urcrnrlat=latmax,
-            lat_ts=0.5 * (lonmin + lonmax),
+            lat_ts=0.5 * (latmin + latmax),
             resolution=basemap_resolution)
 m.ax = ax
 

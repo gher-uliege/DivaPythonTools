@@ -15,14 +15,14 @@ from matplotlib import colors
 from matplotlib.path import Path
 import matplotlib.patches as patches
 
-# Clean 
+# Clean
 os.system('clear')
 
 # -------------
 # User options
 # -------------
 
-# Resolution for coastline 
+# Resolution for coastline
 basemap_resolution = 'i'
 
 # File and directory names
@@ -36,7 +36,7 @@ figbasename = 'mesh_ex_py'
 figtype = '.eps'
 figname = figdir + figbasename + figtype
 
-# Region of interest        
+# Region of interest
 lonmin = -7.
 lonmax = 38.
 latmin = 30.
@@ -87,7 +87,7 @@ ax = fig.add_subplot(111)
 
 m = Basemap(projection='merc', llcrnrlon=lonmin, llcrnrlat=latmin,
             urcrnrlon=lonmax, urcrnrlat=latmax,
-            lat_ts=0.5 * (lonmin + lonmax),
+            lat_ts=0.5 * (latmin + latmax),
             resolution=basemap_resolution)
 m.ax = ax
 
@@ -108,7 +108,7 @@ for j in range(0, nelements):
     patch = patches.PathPatch(path, facecolor='none', lw=1)
     m.ax.add_patch(patch)
 
-# Set axis limits 
+# Set axis limits
 m.ax.set_xlim(lonmin, lonmax)
 m.ax.set_ylim(latmin, latmax)
 
