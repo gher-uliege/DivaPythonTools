@@ -53,3 +53,8 @@ def plot_field(x, y, field, cmap=plt.cm.RdYlBu_r, **kwargs):
 def plot_error(x, y, field, cmap=plt.cm.hot_r, **kwargs):
     pcm = plt.pcolor(x, y, field, cmap=cmap)
     plt.colorbar(pcm)
+    
+    
+ if __name__ == '__main__':
+	 
+	 print(' ')
