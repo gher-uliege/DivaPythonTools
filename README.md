@@ -1,6 +1,6 @@
 # Diva_python_tools
 
-The Python tools for the [DIVA](http://modb.oce.ulg.ac.be/mediawiki/index.php/DIVA) interpolation sofware aim at providing modules to make easier the reading and plotting of input/output files. The jupyter notebook example_2Dplot.ipynb explains how to use the functions.
+The Python tools for the [DIVA](http://modb.oce.ulg.ac.be/mediawiki/index.php/DIVA) interpolation sofware aim at providing modules to make easier the reading and plotting of input/output files. The jupyter notebook [example_2Dplot.ipynb](./example_2Dplot.ipynb) explains how to use the functions.
 
 ## Loading
 
