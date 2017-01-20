@@ -7,12 +7,14 @@ def plot_contour(contours, **kwargs):
 	for contour in contours:
 		# Append first element of the array to close the contour
 		plt.plot(np.append(contour[:, 0], contour[0, 0]), 
-		         np.append(contour[:, 1], contour[0, 1]))
+		         np.append(contour[:, 1], contour[0, 1]), 
+		         '-', linewidth=0.5, color='k')
 		         
-def plot_datapoints(lon, lat, cmap=plt.cm.RdYlBu_r, *args, **kwargs):
+		         
+def plot_datapoints(lon, lat, *args, **kwargs):
 	if len(args) == 1:
-		plt.scatter(lon, lat, c=args[0], **kwargs)
-		cbar = plt.colorbar()
+		plt.scatter(lon, lat, c=args[0], cmap=plt.cm.RdYlBu_r, **kwargs)
+		# cbar = plt.colorbar()
 	else:
 		plt.scatter(lon, lat, **kwargs)
 		
@@ -45,9 +47,10 @@ def plot_mesh(xnode, ynode, i1, i2, i3, ax, **kwargs):
         patch = mpl.patches.PathPatch(path, facecolor='none', lw=.2)
         ax.add_patch(patch)
         
+        
 def plot_field(x, y, field, cmap=plt.cm.RdYlBu_r, **kwargs):
     pcm = plt.pcolor(x, y, field, cmap=cmap)
-    plt.colorbar(pcm)
+    #plt.colorbar(pcm)
     
     
 def plot_error(x, y, field, cmap=plt.cm.hot_r, **kwargs):
@@ -55,6 +58,6 @@ def plot_error(x, y, field, cmap=plt.cm.hot_r, **kwargs):
     plt.colorbar(pcm)
     
     
- if __name__ == '__main__':
-	 
+if __name__ == '__main__':
+		 
 	 print(' ')
