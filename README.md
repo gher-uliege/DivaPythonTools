@@ -4,14 +4,14 @@ The Python tools for the [DIVA](http://modb.oce.ulg.ac.be/mediawiki/index.php/DI
 
 ## Loading
 
-The loading functions are available in the diva2Dread module. These functions allow the user to load the main input files:
+The loading functions are available in the [diva2Dread](./diva2Dread.py) module. These functions allow the user to load the main input files:
 * contours,
 * parameters,
 * data.
 
 ## Plotting
 
-The plotting functions are available in the diva2Dplot module. They allow the user to represent:
+The plotting functions are available in the [diva2Dplot](./diva2Dplot.py) module. They allow the user to represent:
 * the finite-element mesh,
 * the analysed and error fields.
 
@@ -21,4 +21,10 @@ The example below show the Mixed-Layer Depth in the Black Sea for the month of J
 
 # References
 
+## DIVA sofware
+
 Troupin, C.; Sirjacobs, D.; Rixen, M.; Brasseur, P.; Brankart, J.-M.; Barth, A.; Alvera-Azcárate, A.; Capet, A.; Ouberdous, M.; Lenartz, F.; Toussaint, M.-E. & Beckers, J.-M. Generation of analysis and consistent error fields using the Data Interpolating Variational Analysis (Diva) Ocean Modelling, 2012, 52-53, 90-101. doi:[10.1016/j.ocemod.2012.05.002](https://doi.org/10.1016/j.ocemod.2012.05.002)
+
+## Black Sea data
+
+Capet, A.; Troupin, C.; Carstensen, J.; Grégoire, M. & Beckers, J.-M. Untangling spatial and temporal trends in the variability of the Black Sea Cold Intermediate Layer and mixed Layer Depth using the DIVA detrending procedure Ocean Dynamics, 2014, 64, 315-324. doi:[10.1007/s10236-013-0683-4](https://doi.org/10.1007/s10236-013-0683-4)
