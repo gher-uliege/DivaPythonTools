@@ -105,7 +105,7 @@ def read_results(ResultFile):
         try:
             error = nc.variables['error_field'][:]
         except KeyError:
-            logging.warning('No error field in the netCDF file (will return nan)')
+            logging.warning('No error field in the netCDF file (will return)')
             error = np.nan * field
         
     return x, y, field, error
