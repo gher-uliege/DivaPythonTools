@@ -49,7 +49,7 @@ def plot_mesh(xnode, ynode, i1, i2, i3, ax, **kwargs):
         
         
 def plot_field(x, y, field, cmap=plt.cm.RdYlBu_r, **kwargs):
-    pcm = plt.pcolor(x, y, field, cmap=cmap)
+    plt.pcolor(x, y, field, cmap=cmap)
     #plt.colorbar(pcm)
     
     
