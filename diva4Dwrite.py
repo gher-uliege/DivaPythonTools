@@ -9,7 +9,7 @@ import os
 import logging
 
 logger = logging.getLogger(__name__)
-logger.setLevel('DEBUG')
+logger.setLevel('WARNING')
 
 
 def write_datasource(diva4ddir, datafilelist):
@@ -22,7 +22,7 @@ def write_datasource(diva4ddir, datafilelist):
     """
     with open(os.path.join(diva4ddir, 'datasource'), 'w') as f:
         for datafile in datafilelist:
-            f.write(' '.join((datafile, '\n')))
+            f.write(''.join((datafile, '\n')))
     logger.info("File 'datasource' written in directory {0}".format(diva4ddir))
 
 
@@ -37,7 +37,7 @@ def write_constandrefe(diva4ddir, advection_flag, ref_flag,
     :type ref_flag: int
     :param var_year_code: Variable year code
     :type var_year_code: str
-    :param var_month_code:  Variable month code
+    :param var_month_code: Variable month code
     :type var_month_code: str
     """
     constandrefe_string = ("# advection flag\n{0}\n"
@@ -125,7 +125,7 @@ def write_monthlist(diva4ddir, monthlist):
     """
     with open(os.path.join(diva4ddir, 'monthlist'), 'w') as f:
         for mm in monthlist:
-            f.write(' '.join((mm, '\n')))
+            f.write(''.join((mm, '\n')))
 
     logger.info("File 'monthlist' written in directory {0}".format(diva4ddir))
 
@@ -139,7 +139,7 @@ def write_qflist(diva4ddir, qflist):
     """
     with open(os.path.join(diva4ddir, 'qflist'), 'w') as f:
         for qf in qflist:
-            f.write(' '.join((str(qf), '\n')))
+            f.write(''.join((str(qf), '\n')))
 
     logger.info("File 'qfList' written in directory {0}".format(diva4ddir))
 
@@ -153,7 +153,7 @@ def write_varlist(diva4ddir, varlist):
     """
     with open(os.path.join(diva4ddir, 'varlist'), 'w') as f:
         for variables in varlist:
-            f.write(' '.join((variables, '\n')))
+            f.write(''.join((variables, '\n')))
 
     logger.info("File 'varlist' written in directory {0}".format(diva4ddir))
 
@@ -168,7 +168,7 @@ def write_yearlist(diva4ddir, yearlist):
     """
     with open(os.path.join(diva4ddir, 'yearlist'), 'w') as f:
         for years in yearlist:
-            f.write(' '.join((years, '\n')))
+            f.write(''.join((years, '\n')))
 
     logger.info("File 'yearlist' written in directory {0}".format(diva4ddir))
 
@@ -182,7 +182,7 @@ def write_contourdepth(diva4dinputdir, depthlist):
     """
     with open(os.path.join(diva4dinputdir, 'contour.depth'), 'w') as f:
         for depths in depthlist:
-            f.write(' '.join((str(depths), '\n')))
+            f.write(''.join((str(depths), '\n')))
 
     logger.info("File 'contour.depth' written in directory {0}".format(diva4dinputdir))
 
@@ -215,28 +215,28 @@ def write_ncdfinfo(diva4dinputdir, ncdf_title, ncdf_reftime, ncdf_timeval, ncdf_
     :type ncdf_acknowlegment: str
     """
     ncdfinfo_string =\
-    ("Title string for 3D NetCDF file:\n"
-     "{0}\n"
-     "Reference time for data (ie: days since since 1900-01-01), if not climatological data\n"
-     "{1}\n"
-     "Time value (that reprsents the data set), if not climatological data\n"
-     "{2}\n"
-     "Cell_methode string:\n"
-     "{3}\n"
-     "Institution name: where the dataset was produced.\n"
-     "{4}\n"
-     "Production group and e-mail\n"
-     "{5}\n"
-     "Source (observation, radiosonde, database, model-generated data,...)\n"
-     "{6}\n"
-     "Comment\n"
-     "{7}\n"
-     "Author e-mail address (or contact person to report problems)\n"
-     "{8}\n"
-     "Acknowledgements\n"
-     "{9}").format(ncdf_title, ncdf_reftime, ncdf_timeval, ncdf_cellmethod,
-                   ncdf_institution, ncdf_groupemail, ncdf_source,
-                   ncdf_comment, ncdf_authoremail, ncdf_acknowlegment)
+        ("Title string for 3D NetCDF file:\n"
+         "{0}\n"
+         "Reference time for data (ie: days since since 1900-01-01), if not climatological data\n"
+         "{1}\n"
+         "Time value (that reprsents the data set), if not climatological data\n"
+         "{2}\n"
+         "Cell_methode string:\n"
+         "{3}\n"
+         "Institution name: where the dataset was produced.\n"
+         "{4}\n"
+         "Production group and e-mail\n"
+         "{5}\n"
+         "Source (observation, radiosonde, database, model-generated data,...)\n"
+         "{6}\n"
+         "Comment\n"
+         "{7}\n"
+         "Author e-mail address (or contact person to report problems)\n"
+         "{8}\n"
+         "Acknowledgements\n"
+         "{9}").format(ncdf_title, ncdf_reftime, ncdf_timeval, ncdf_cellmethod,
+                       ncdf_institution, ncdf_groupemail, ncdf_source,
+                       ncdf_comment, ncdf_authoremail, ncdf_acknowlegment)
 
     with open(os.path.join(diva4dinputdir, 'NCDFinfo'), 'w') as f:
         f.write(ncdfinfo_string)
