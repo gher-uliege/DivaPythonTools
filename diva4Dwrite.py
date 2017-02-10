@@ -216,7 +216,7 @@ def write_ncdfinfo(diva4dinputdir, ncdf_title, ncdf_reftime, ncdf_timeval, ncdf_
     """
     ncdfinfo_string =\
         ("Title string for 3D NetCDF file:\n"
-         "{0}\n"
+         '"{0}\n"'
          "Reference time for data (ie: days since since 1900-01-01), if not climatological data\n"
          "{1}\n"
          "Time value (that reprsents the data set), if not climatological data\n"

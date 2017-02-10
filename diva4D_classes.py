@@ -47,6 +47,7 @@ class Diva4Dfiles(object):
             self.yearlist = os.path.join(self.diva4ddir, 'yearlist')
             self.contourdepth = os.path.join(self.diva4ddir, 'contourdepth')
             self.ncdfinfo = os.path.join(self.diva4ddir, 'ncdfinfo')
+            self.param = os.path.join(self.diva4ddir, 'input/param.par')
 
             logger.info("datasource file: {0}".format(self.datasource))
             logger.info("constandrefe file: {0}".format(self.constandrefe))
@@ -57,6 +58,7 @@ class Diva4Dfiles(object):
             logger.info("yearlist file: {0}".format(self.yearlist))
             logger.info("contourdepth file: {0}".format(self.contourdepth))
             logger.info("ncdfinfo file: {0}".format(self.ncdfinfo))
+            logger.info("param.par file: {0}".format(self.param))
         else:
             logging.error("%{0} is not a directory or doesn't exist".format(self.diva4ddir))
 
@@ -77,7 +79,7 @@ class Datasource(object):
             logger.warning('Argument converted from string to list')
         self.datafilelist = datafilelist
 
-    def write_to_file(self, filename):
+    def write_to(self, filename):
         """Write the names of the files containing the data
          in the 'datasource' file .
         :param filename: the name of the 'datasource' file
@@ -90,7 +92,7 @@ class Datasource(object):
                 f.write(''.join((datafile, '\n')))
         logger.info("Written into file {0}".format(filename))
 
-    def read_from_file(self, filename):
+    def read_from(self, filename):
         """Read the data sources from an existing file containing
         a list of ODV files and add it to the existing list.
         """
@@ -126,7 +128,7 @@ class Constandrefe(object):
         self.var_year_code = var_year_code
         self.var_month_code = var_month_code
 
-    def write_to_file(self, filename):
+    def write_to(self, filename):
         """Write the 'constandrefe' parameter in the specified file.
         :param filename: name of the file where the parameters will be written.
         :param filename: str
@@ -201,7 +203,7 @@ class Driver(object):
         self.gnuplot_flag = gnuplot_flag
         self.detrend_groupnum = detrend_groupnum
 
-    def write_to_file(self, filename):
+    def write_to(self, filename):
         """Write the 'driver' parameter in the specicfied filefile in the specified diva4ddir.
         :param filename: name of the file where the driver parameters will be written.
         :param filename: str
@@ -244,7 +246,7 @@ class Monthlist(object):
         """
         self.monthlist = monthlist
 
-    def write_to_file(self, filename):
+    def write_to(self, filename):
         """Write the month list in the specified file.
         :param filename: name of the file where the parameters will be written.
         :param filename: str
@@ -266,7 +268,7 @@ class Qflist(object):
         """
         self.qflist = qflist
 
-    def write_qflist(self, filename):
+    def write_to(self, filename):
         """Write the QF list in the specified file.
         :param filename: name of the file where the QF values will be written.
         :param filename: str
@@ -288,7 +290,7 @@ class Varlist(object):
         """
         self.varlist = varlist
 
-    def write_varlist(self, filename):
+    def write_to(self, filename):
         """Write the variable list in the specified file.
         :param filename: name of the file where the variables will be written.
         :type filename: str
@@ -310,7 +312,7 @@ class Yearlist(object):
         """
         self.yearlist = yearlist
 
-    def write_yearlist(self, filename):
+    def write_to(self, filename):
         """Write the year list in the specified file.
         :param filename: name of the file where the selected year will be written.
         :type filename: str
@@ -333,7 +335,7 @@ class Contourdepth(object):
         """
         self.depthlist = depthlist
 
-    def write_contourdepth(self, filename):
+    def write_to(self, filename):
         """Write the contour depth list in the specified file.
         :param filename: name of the file where the contour depths will be written.
         :type filename: str
@@ -385,7 +387,7 @@ class Ncdfinfo(object):
         self.authoremail = authoremail
         self.acknowlegment = acknowlegment
 
-    def write_to_file(self, filename):
+    def write_to(self, filename):
         """Write the netCDF metadata information in the specified file.
         :param filename: name of the file where the netCDF metadata information will be written.
         :type filename: str
@@ -393,25 +395,25 @@ class Ncdfinfo(object):
         """
         ncdfinfo_string =\
             ('Title string for 3D NetCDF file:\n'
-             '{0}\n'
+             "'{0}'\n"
              'Reference time for data (ie: days since since 1900-01-01), if not climatological data\n'
-             '{1}\n'
-             'Time value (that reprsents the data set), if not climatological data\n'
-             '{2}\n'
+             "'{1}'\n"
+             'Time value (that represents the data set), if not climatological data\n'
+             "{2}\n"
              'Cell_methode string:\n'
-             '{3}\n'
+             "'{3}'\n"
              'Institution name: where the dataset was produced.\n'
-             '{4}\n'
+             "'{4}'\n"
              'Production group and e-mail\n'
-             '{5}\n'
+             "'{5}'\n"
              'Source (observation, radiosonde, database, model-generated data,...)\n'
-             '{6}\n'
+             "'{6}'\n"
              'Comment\n'
-             '{7}\n'
+             "'{7}'\n"
              'Author e-mail address (or contact person to report problems)\n'
-             '{8}\n'
+             "'{8}'\n"
              'Acknowledgements\n'
-             '{9}').format(self.title, self.reftime, self.timeval, self.cellmethod,
+             "'{9}'").format(self.title, self.reftime, self.timeval, self.cellmethod,
                            self.institution, self.groupemail, self.source,
                            self.comment, self.authoremail, self.acknowlegment)
 
