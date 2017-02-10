@@ -1,5 +1,6 @@
 __author__ = 'ctroupin'
-'''User interface for diva in python'''
+"""User interface for diva in python
+"""
 
 import logging
 import os
@@ -10,13 +11,29 @@ import netCDF4
 from matplotlib import path
 from matplotlib import patches
 
-logger = logging.getLogger()
+# create logger with 'spam_application'
+logger = logging.getLogger('diva2D')
 logger.setLevel(logging.DEBUG)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('diva2D.log')
+fh.setLevel(logging.DEBUG)
+# create console handler with a higher log level
+ch = logging.StreamHandler()
+ch.setLevel(logging.ERROR)
+# create formatter and add it to the handlers
+formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+# add the handlers to the logger
+logger.addHandler(fh)
+logger.addHandler(ch)
 
-
-class DivaDirectory(object):
+class DivaDirectories(object):
     def __init__(self, divadir):
-
+        """
+        :param divadir: Main Diva directory (diva-x.y.z)
+        :return: str
+        """
         self.divadir = divadir
 
         if os.path.isdir(self.divadir):
@@ -37,6 +54,8 @@ class DivaDirectory(object):
 
 
 class Diva2Dfiles(object):
+    """Diva 2D input and output files names based on the current Diva directory
+    """
     def __init__(self, diva2ddir):
 
         self.diva2ddir = diva2ddir
