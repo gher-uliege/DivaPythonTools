@@ -142,7 +142,7 @@ class Constandrefe(object):
         with open(os.path.join(filename), 'w') as f:
             f.write(constandrefe_string)
 
-        logger.info("File into file {0}".format(filename))
+        logger.info("Written into file {0}".format(filename))
 
 
 class Driver(object):
