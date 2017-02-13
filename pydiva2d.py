@@ -11,7 +11,8 @@ import netCDF4
 from matplotlib import path
 from matplotlib import patches
 
-# create logger with 'spam_application'
+
+# create logger
 logger = logging.getLogger('diva2D')
 logger.setLevel(logging.DEBUG)
 # create file handler which logs even debug messages
@@ -28,10 +29,11 @@ ch.setFormatter(formatter)
 logger.addHandler(fh)
 logger.addHandler(ch)
 
+
 class DivaDirectories(object):
     def __init__(self, divadir):
         """
-        :param divadir: Main Diva directory (diva-x.y.z)
+        :param divadir: Main Diva directory (ending by diva-x.y.z)
         :return: str
         """
         self.divadir = divadir
@@ -43,6 +45,8 @@ class DivaDirectories(object):
             self.diva2ddir = os.path.join(self.divadir, 'DIVA3D/divastripped')
             self.diva4ddir = os.path.join(self.divadir, 'JRA4/Climatology')
             self.diva4dinputdir = os.path.join(self.divadir, 'JRA4/Climatology/input')
+            logger.info('Diva main directory: {0}'.format(self.divadir))
+            logger.info('Creating Diva directory paths')
             logger.info("Diva binary directory: {0}".format(self.divabindir))
             logger.info("Diva source directory: {0}".format(self.divasrcdir))
             logger.info("Diva 2D directory: {0}".format(self.diva2ddir))
@@ -68,7 +72,7 @@ class Diva2Dfiles(object):
             self.resultfile = os.path.join(self.diva2ddir, 'output/ghertonetcdf/results.nc')
             self.meshfile = os.path.join(self.diva2ddir, 'meshgenwork/fort.22')
             self.meshtopofile = os.path.join(self.diva2ddir, 'meshgenwork/fort.23')
-
+            logger.info("Creating Diva 2D file names and paths")
             logger.info("Contour file: {0}".format(self.contourfile))
             logger.info("Parameter file: {0}".format(self.parameterfile))
             logger.info("Data file: {0}".format(self.datafile))
@@ -77,7 +81,7 @@ class Diva2Dfiles(object):
             logger.info("Mesh file: {0}".format(self.meshfile))
             logger.info("Mesh topo file: {0}".format(self.meshtopofile))
         else:
-            logging.error("%{0} is not a directory or doesn't exist".format(self.diva2ddir))
+            logger.error("%{0} is not a directory or doesn't exist".format(self.diva2ddir))
 
 
 class Diva2DData(object):
@@ -90,21 +94,25 @@ class Diva2DData(object):
             self.x = x
             self.y = y
             self.data = data
+            logger.info("Creating Diva 2D data object")
         else:
+            logger.error("Input vectors have not the same length")
             raise Exception("Input vectors have not the same length")
+
 
         if not weight:
             self.weight = [1] * len(data)
+            logger.info("Weight set to 1 for all data points")
         else:
             self.weight = weight
 
-    def write_to_file(self, filename):
+    def write_to(self, filename):
         with open(filename, 'w') as f:
             for xx, yy, zz, ww in zip(self.x, self.y, self.data, self.weight):
                 f.write("%s %s %s %s\n" % (xx, yy, zz, ww))
-        logging.info("Written data file {0}".format(filename))
+        logger.info("Written data into file {0}".format(filename))
 
-    def read_from_file(self, filename):
+    def read_from(self, filename):
         """Read the information contained in a DIVA data file
         lon, lat, value, (field)
         """
@@ -117,12 +125,14 @@ class Diva2DData(object):
         """Add the data points to the plot using a scatter plot.
         :param kwargs:
         """
+        logger.debug('Adding data points to plot')
         plt.scatter(self.x, self.y, c=self.data, **kwargs)
 
     def add_positions_to_plot(self, **kwargs):
         """Add the data positions to the plot.
         :param kwargs:
         """
+        logger.debug('Adding data positions to plot')
         plt.scatter(self.x, self.y, **kwargs)
 
     @property
@@ -131,6 +141,7 @@ class Diva2DData(object):
         :return: ndata: int
         """
         ndata = len(self.x)
+        logger.info("Number of data points: {0}".format(ndata))
         return ndata
 
 
@@ -144,8 +155,11 @@ class Diva2DContours(object):
             if len(x) == len(y):
                 self.x = x
                 self.y = y
+                logger.info("Creating Diva 2D contour object")
             else:
                 Exception("Input vectors have not the same length")
+                logger.error("Input vectors have not the same length")
+
 
     @property
     def get_contours_number(self):
@@ -153,9 +167,10 @@ class Diva2DContours(object):
         :return: ncontour: int
         """
         ncontour = len(self.x)
+        logger.info("Number of contours: {0}".format(ncontour))
         return ncontour
 
-    def write_to_file(self, filename):
+    def write_to(self, filename):
         """Write the contour
         :param filename: string
         :return:
@@ -163,20 +178,19 @@ class Diva2DContours(object):
         ncontour = self.get_contours_number
         npoints = self.get_points_number
 
-        logging.debug("Total number of contours: {0}".format(ncontour))
         with open(filename, 'w') as f:
             f.write(str(ncontour) + '\n')
             for i in range(0, ncontour):
 
-                logging.debug("Sub-contour no. {0} has {1} points".format(i, npoints[i]))
+                logger.debug("Sub-contour no. {0} has {1} points".format(i, npoints[i]))
                 f.write(str(npoints[i]) + '\n')
                 for xx, yy in zip(self.x[i], self.y[i]):
                     line = ' '.join((str(xx), str(yy)))
                     f.write(line + '\n')
 
-        logging.info("Written contour file {0}".format(filename))
+        logger.info("Written contours into file {0}".format(filename))
 
-    def read_from_file(self, filename):
+    def read_from(self, filename):
         """Get the coordinates of the contour from an already existing contour file
         :parameter: filename: str
         :return: lon: numpy ndarray
@@ -224,6 +238,7 @@ class Diva2DContours(object):
             self.y = np.array(lat)
 
         else:
+            logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
 
     def add_to_plot(self, **kwargs):
@@ -273,6 +288,8 @@ class Diva2DParameters(object):
         self.xend = self.xori + (self.nx - 1) * self.dx
         self.yend = self.yori + (self.ny - 1) * self.dy
 
+        logger.info("Creating Diva 2D parameter object")
+
     def list_parameters(self):
         """Print the parameter values read from the parameter file
         """
@@ -286,7 +303,7 @@ class Diva2DParameters(object):
         print("Signal-to-noise ratio: {0}".format(self.snr))
         print("Variance of the background field: {0}".format(self.varbak))
 
-    def write_to_file(self, filename):
+    def write_to(self, filename):
         """Create a DIVA 2D parameter file given the main analysis parameters
         defined as floats or integers.
         """
@@ -309,8 +326,9 @@ class Diva2DParameters(object):
 
         with open(filename, 'w') as f:
             f.write(paramstring)
+            logger.info("Written parameters into file {0}".format(filename))
 
-    def read_from_file(self, filename):
+    def read_from(self, filename):
         """Read the information contained in a DIVA parameter file
         and extract the analysis parameters
         """
@@ -331,6 +349,8 @@ class Diva2DParameters(object):
         self.snr = snr
         self.varbak = varbak
 
+        logger.info("Read from parameter file {0}".format(filename))
+
     def plot_outputgrid(self, scalefactor=1, **kwargs):
         """Plot the specified output grid for the analyzed field.
 
@@ -345,6 +365,8 @@ class Diva2DParameters(object):
         yy = np.arange(self.yori, self.yend, scalefactor * self.dy)
         plt.hlines(yy, self.xori, self.xend, linewidth=0.2, **kwargs)
         plt.vlines(xx, self.yori, self.yend, linewidth=0.2, **kwargs)
+
+        logger.debug('Adding output grid to plot')
 
 
 class Diva2DResults(object):
@@ -378,9 +400,11 @@ class Diva2DResults(object):
         :type field: str
         """
         if field == 'result':
+            logger.debug('Adding analysed field to plot')
             plt.pcolormesh(self.x, self.y, self.field, **kwargs)
             plt.colorbar()
         elif field == 'error':
+            logger.debug('Adding error field to plot')
             plt.pcolormesh(self.x, self.y, self.error, **kwargs)
             plt.colorbar()
         else:
@@ -446,6 +470,7 @@ class Diva2DMesh(object):
             meshpatch = patches.PathPatch(meshpath, facecolor='none', **kwargs)
             ax.add_patch(meshpatch)
 
+        logger.debug('Adding finite-element mesh to plot')
         ax.set_xlim(self.xnode.min(), self.xnode.max())
         ax.set_ylim(self.ynode.min(), self.ynode.max())
 
