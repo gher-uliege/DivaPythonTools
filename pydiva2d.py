@@ -31,57 +31,57 @@ logger.addHandler(ch)
 
 
 class DivaDirectories(object):
-    def __init__(self, divadir):
+    def __init__(self, divamain):
         """
-        :param divadir: Main Diva directory (ending by diva-x.y.z)
+        :param divamain: Main Diva directory (ending by diva-x.y.z)
         :return: str
         """
-        self.divadir = divadir
+        self.divamain = divamain
 
-        if os.path.isdir(self.divadir):
-            logging.debug("{0} exists".format(self.divadir))
-            self.divabindir = os.path.join(self.divadir, 'DIVA3D/bin')
-            self.divasrcdir = os.path.join(self.divadir, 'DIVA3D/src/Fortan')
-            self.diva2ddir = os.path.join(self.divadir, 'DIVA3D/divastripped')
-            self.diva4ddir = os.path.join(self.divadir, 'JRA4/Climatology')
-            self.diva4dinputdir = os.path.join(self.divadir, 'JRA4/Climatology/input')
-            logger.info('Diva main directory: {0}'.format(self.divadir))
+        if os.path.isdir(self.divamain):
+            logging.debug("{0} exists".format(self.divamain))
+            self.divabin = os.path.join(self.divamain, 'DIVA3D/bin')
+            self.divasrc = os.path.join(self.divamain, 'DIVA3D/src/Fortan')
+            self.diva2d = os.path.join(self.divamain, 'DIVA3D/divastripped')
+            self.diva4d = os.path.join(self.divamain, 'JRA4/Climatology')
+            self.diva4dinput = os.path.join(self.divamain, 'JRA4/Climatology/input')
+            logger.info('Diva main directory: {0}'.format(self.divamain))
             logger.info('Creating Diva directory paths')
-            logger.info("Diva binary directory: {0}".format(self.divabindir))
-            logger.info("Diva source directory: {0}".format(self.divasrcdir))
-            logger.info("Diva 2D directory: {0}".format(self.diva2ddir))
-            logger.info("Diva 4D directory: {0}".format(self.diva4ddir))
-            logger.info("Diva 4D input directory: {0}".format(self.diva4dinputdir))
+            logger.info("Diva binary directory: {0}".format(self.divabin))
+            logger.info("Diva source directory: {0}".format(self.divasrc))
+            logger.info("Diva 2D directory: {0}".format(self.diva2d))
+            logger.info("Diva 4D directory: {0}".format(self.diva4d))
+            logger.info("Diva 4D input directory: {0}".format(self.diva4dinput))
 
         else:
-            logging.error("{0} is not a directory or doesn't exist".format(self.divadir))
+            logging.error("{0} is not a directory or doesn't exist".format(self.divamain))
 
 
 class Diva2Dfiles(object):
     """Diva 2D input and output files names based on the current Diva directory
     """
-    def __init__(self, diva2ddir):
+    def __init__(self, diva2d):
 
-        self.diva2ddir = diva2ddir
+        self.diva2d = diva2d
 
-        if os.path.isdir(self.diva2ddir):
-            self.contourfile = os.path.join(self.diva2ddir, 'input/coast.cont')
-            self.parameterfile = os.path.join(self.diva2ddir, 'input/param.par')
-            self.datafile = os.path.join(self.diva2ddir, 'input/data.dat')
-            self.valatxyfile = os.path.join(self.diva2ddir, 'input/valatxy.coord')
-            self.resultfile = os.path.join(self.diva2ddir, 'output/ghertonetcdf/results.nc')
-            self.meshfile = os.path.join(self.diva2ddir, 'meshgenwork/fort.22')
-            self.meshtopofile = os.path.join(self.diva2ddir, 'meshgenwork/fort.23')
+        if os.path.isdir(self.diva2d):
+            self.contour = os.path.join(self.diva2d, 'input/coast.cont')
+            self.parameter = os.path.join(self.diva2d, 'input/param.par')
+            self.data = os.path.join(self.diva2d, 'input/data.dat')
+            self.valatxy = os.path.join(self.diva2d, 'input/valatxy.coord')
+            self.result = os.path.join(self.diva2d, 'output/ghertonetcdf/results.nc')
+            self.mesh = os.path.join(self.diva2d, 'meshgenwork/fort.22')
+            self.meshtopo = os.path.join(self.diva2d, 'meshgenwork/fort.23')
             logger.info("Creating Diva 2D file names and paths")
-            logger.info("Contour file: {0}".format(self.contourfile))
-            logger.info("Parameter file: {0}".format(self.parameterfile))
-            logger.info("Data file: {0}".format(self.datafile))
-            logger.info("Valatxy file: {0}".format(self.valatxyfile))
-            logger.info("Result file: {0}".format(self.resultfile))
-            logger.info("Mesh file: {0}".format(self.meshfile))
-            logger.info("Mesh topo file: {0}".format(self.meshtopofile))
+            logger.info("Contour file: {0}".format(self.contour))
+            logger.info("Parameter file: {0}".format(self.parameter))
+            logger.info("Data file: {0}".format(self.data))
+            logger.info("Valatxy file: {0}".format(self.valatxy))
+            logger.info("Result file: {0}".format(self.result))
+            logger.info("Mesh file: {0}".format(self.mesh))
+            logger.info("Mesh topo file: {0}".format(self.meshtopo))
         else:
-            logger.error("%{0} is not a directory or doesn't exist".format(self.diva2ddir))
+            logger.error("%{0} is not a directory or doesn't exist".format(self.diva2d))
 
 
 class Diva2DData(object):
@@ -99,11 +99,11 @@ class Diva2DData(object):
             logger.error("Input vectors have not the same length")
             raise Exception("Input vectors have not the same length")
 
-
-        if not weight:
+        if weight is None:
             self.weight = [1] * len(data)
             logger.info("Weight set to 1 for all data points")
         else:
+            logger.info("Setting weights to data points")
             self.weight = weight
 
     def write_to(self, filename):
@@ -160,7 +160,6 @@ class Diva2DContours(object):
                 Exception("Input vectors have not the same length")
                 logger.error("Input vectors have not the same length")
 
-
     @property
     def get_contours_number(self):
         """ Return the number of sub-contours
@@ -182,7 +181,7 @@ class Diva2DContours(object):
             f.write(str(ncontour) + '\n')
             for i in range(0, ncontour):
 
-                logger.debug("Sub-contour no. {0} has {1} points".format(i, npoints[i]))
+                logger.debug("Sub-contour no. {0} has {1} points".format(i+1, npoints[i]))
                 f.write(str(npoints[i]) + '\n')
                 for xx, yy in zip(self.x[i], self.y[i]):
                     line = ' '.join((str(xx), str(yy)))
@@ -290,18 +289,18 @@ class Diva2DParameters(object):
 
         logger.info("Creating Diva 2D parameter object")
 
-    def list_parameters(self):
+    def describe(self):
         """Print the parameter values read from the parameter file
         """
-        print("Correlation length: {0}".format(self.cl))
-        print("icoordchange: {0}".format(self.icoordchange))
-        print("ispec: {0}".format(self.ispec))
-        print("ireg: {0}".format(self.ireg))
-        print("xori: {0}, yori: {1}, dx: {2}, dy: {3}, nx: {4}, ny: {5}".format(self.xori, self.yori, self.dx,
+        logger.info("Correlation length: {0}".format(self.cl))
+        logger.info("icoordchange: {0}".format(self.icoordchange))
+        logger.info("ispec: {0}".format(self.ispec))
+        logger.info("ireg: {0}".format(self.ireg))
+        logger.info("xori: {0}, yori: {1}, dx: {2}, dy: {3}, nx: {4}, ny: {5}".format(self.xori, self.yori, self.dx,
                                                                                 self.dy, self.nx, self.ny))
-        print("Exclusion value: {0}".format(self.valex))
-        print("Signal-to-noise ratio: {0}".format(self.snr))
-        print("Variance of the background field: {0}".format(self.varbak))
+        logger.info("Exclusion value: {0}".format(self.valex))
+        logger.info("Signal-to-noise ratio: {0}".format(self.snr))
+        logger.info("Variance of the background field: {0}".format(self.varbak))
 
     def write_to(self, filename):
         """Create a DIVA 2D parameter file given the main analysis parameters
@@ -369,6 +368,42 @@ class Diva2DParameters(object):
         logger.debug('Adding output grid to plot')
 
 
+class Diva2DValatxy(object):
+    """Class to store the positions of the additional locations where the interpolation
+    has to be performed.
+    """
+
+    def __init__(self, x, y):
+
+        if len(x) == len(y):
+            self.x = x
+            self.y = y
+            logger.info("Creating Diva 2D valatxy object")
+        else:
+            logger.error("Input vectors have not the same length")
+            raise Exception("Input vectors have not the same length")
+
+    def write_to(self, filename):
+        with open(filename, 'w') as f:
+            for xx, yy in zip(self.x, self.y):
+                f.write("%s %s\n" % (xx, yy))
+        logger.info("Written locations into file {0}".format(filename))
+
+    def read_from(self, filename):
+        """Read the information contained in a DIVA data file
+        lon, lat, value, (field)
+        """
+        self.x, self.y = np.loadtxt(filename, unpack=True, usecols=(0, 1))
+
+    def add_to_plot(self, **kwargs):
+        """Add the positions of the extra analysis points to the plot using a scatter plot.
+        :param kwargs:
+        """
+        logger.debug('Adding extra analysis points to plot')
+        plt.scatter(self.x, self.y, **kwargs)
+
+
+
 class Diva2DResults(object):
     """Class that stores the results of the analysis
     """
@@ -428,14 +463,12 @@ class Diva2DMesh(object):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
         """
+        logger.info("Creating Diva 2D mesh object")
+
         datamesh = np.loadtxt(filename2)
         self.nnodes = int(datamesh[0])
         self.ninterfaces = int(datamesh[1])
         self.nelements = int(datamesh[2])
-
-        logger.info("Number of nodes: {0}".format(self.nnodes))
-        logger.info("Number of interfaces: {0}".format(self.ninterfaces))
-        logger.info("Number of elements: {0}".format(self.nelements))
 
         # Load mesh nodes
         meshnodes = np.genfromtxt(filename1, skip_footer=self.nelements + self.ninterfaces)
@@ -454,6 +487,15 @@ class Diva2DMesh(object):
         self.i1 = meshelements[np.arange(0, self.nelements * 6, 6)] - 1
         self.i2 = meshelements[np.arange(2, self.nelements * 6, 6)] - 1
         self.i3 = meshelements[np.arange(4, self.nelements * 6, 6)] - 1
+
+    def describe(self):
+        """Summarise the mesh characteristics
+        """
+
+        logger.info("Number of nodes: {0}".format(self.nnodes))
+        logger.info("Number of interfaces: {0}".format(self.ninterfaces))
+        logger.info("Number of elements: {0}".format(self.nelements))
+
 
     def add_to_plot(self, ax, **kwargs):
         """Plot the finite element mesh using the patch function of matplotlib.
