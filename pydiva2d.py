@@ -88,45 +88,80 @@ class Diva2DData(object):
     """Class to store the properties of a 2D data file
     """
 
-    def __init__(self, x, y, data, weight=None):
+    def __init__(self, x=np.array(()), y=np.array(()), field=np.array(()), weight=None):
 
-        if (len(x) == len(y)) & (len(x) == len(data)):
-            self.x = x
-            self.y = y
-            self.data = data
-            logger.info("Creating Diva 2D data object")
-        else:
-            logger.error("Input vectors have not the same length")
-            raise Exception("Input vectors have not the same length")
+        if len(x):
+            if (len(x) == len(y)) & (len(x) == len(field)):
+                self.x = x
+                self.y = y
+                self.field = field
+                logger.info("Creating Diva 2D data object")
+            else:
+                logger.error("Input vectors have not the same length")
+                raise Exception("Input vectors have not the same length")
 
-        if weight is None:
-            self.weight = [1] * len(data)
-            logger.info("Weight set to 1 for all data points")
-        else:
-            logger.info("Setting weights to data points")
-            self.weight = weight
+            if weight is None:
+                self.weight = [1] * len(field)
+                logger.info("Weight set to 1 for all data points")
+            else:
+                logger.info("Setting weights to data points")
+                self.weight = weight
 
     def write_to(self, filename):
+        """Write the data positions and valies into the selected file .
+        :param filename: the name of the 'data' file
+        :type filename: str
+        :return:
+        """
         with open(filename, 'w') as f:
             for xx, yy, zz, ww in zip(self.x, self.y, self.data, self.weight):
                 f.write("%s %s %s %s\n" % (xx, yy, zz, ww))
         logger.info("Written data into file {0}".format(filename))
 
-    def read_from(self, filename):
+    def read_from_slow(self, filename):
         """Read the information contained in a DIVA data file
-        lon, lat, value, (field)
+        lon, lat, field, (weight).
+
+        This function uses 'numpy.loadtxt', which seems slower than the classic
+        reading line by line.
         """
-        self.x, self.y, self.data = np.loadtxt(filename, unpack=True, usecols=(0, 1, 2))
-        # TODO
-        # Check performance for huge files
-        # Check for files with different number of columns (weight)
+        self.x, self.y, self.field = np.loadtxt(filename, unpack=True, usecols=(0, 1, 2))
+        # Not sure the function easily deals with data files with different number of columns.
+        # Maybe not necessary to deal with that situation.
+
+    def read_from(self, filename):
+        lon, lat, field, weight = [], [], [], []
+
+        if os.path.exists(filename):
+            logger.info("Reading data from file {0}".format(filename))
+            with open(filename, 'r') as f:
+                line = f.readline()
+                ncols = len(line.split())
+                while ncols >= 3:
+                    lon.append(float(line.split()[0]))
+                    lat.append(float(line.split()[1]))
+                    field.append(float(line.split()[2]))
+                    if ncols >= 4:
+                        weight.append(float(line.split()[3]))
+                    else:
+                        weight.append(1.)
+                    line = f.readline()
+                    ncols = len(line.split())
+
+            self.x = np.array(lon)
+            self.y = np.array(lat)
+            self.field = np.array(field)
+            self.weight = np.array(weight)
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
 
     def add_to_plot(self, **kwargs):
         """Add the data points to the plot using a scatter plot.
         :param kwargs:
         """
         logger.debug('Adding data points to plot')
-        plt.scatter(self.x, self.y, c=self.data, **kwargs)
+        plt.scatter(self.x, self.y, c=self.field, **kwargs)
 
     def add_positions_to_plot(self, **kwargs):
         """Add the data positions to the plot.
@@ -140,8 +175,12 @@ class Diva2DData(object):
         """Count the number of data points in the data file
         :return: ndata: int
         """
-        ndata = len(self.x)
-        logger.info("Number of data points: {0}".format(ndata))
+        try:
+            ndata = len(self.x)
+            logger.info("Number of data points: {0}".format(ndata))
+        except AttributeError:
+            logger.error("Data object has not been defined")
+            ndata = 0
         return ndata
 
 
@@ -169,9 +208,20 @@ class Diva2DContours(object):
         logger.info("Number of contours: {0}".format(ncontour))
         return ncontour
 
+    @property
+    def get_points_number(self):
+        """For each contour, return the number of points
+        """
+        ncontour = self.get_contours_number
+        npoints = []
+        for i in range(0, ncontour):
+            npoints.append(len(self.x[i]))
+        return npoints
+
     def write_to(self, filename):
-        """Write the contour
-        :param filename: string
+        """Write the contour coordinates into the selected file.
+        :param filename: the name of the 'datasource' file
+        :type filename: str
         :return:
         """
         ncontour = self.get_contours_number
@@ -189,8 +239,11 @@ class Diva2DContours(object):
 
         logger.info("Written contours into file {0}".format(filename))
 
-    def read_from(self, filename):
-        """Get the coordinates of the contour from an already existing contour file
+    def read_from_slow(self, filename):
+        """Get the coordinates of the contour from an already existing contour file.
+
+        The function use genfromtxt severall times and is not optimised at all.
+        For large contour files, use 'read_from' function.
         :parameter: filename: str
         :return: lon: numpy ndarray
         :return: lat: numpy ndarray
@@ -200,9 +253,8 @@ class Diva2DContours(object):
         if os.path.exists(filename):
 
             # Count number of contour and lines in the files
-            # TODO : find another way to read the 1st line
-            # Probably no need to use genfromtxt and linecache
-
+            # %timeit shows that "linecache" is way faster than "readline" on the first line
+            logger.info("Reading contours from file {0}".format(filename))
             ncontours = int(linecache.getline(filename, 1))
 
             with open(filename) as f:
@@ -240,6 +292,40 @@ class Diva2DContours(object):
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
 
+    def read_from(self, filename):
+        """Get the coordinates of the contour from an already existing contour file.
+
+        The function reads the file only once and performs the conversion from lists
+        to ndarrays at the end of the loop.
+        :parameter: filename: str
+        :return: lon: numpy ndarray
+        :return: lat: numpy ndarray
+        """
+
+        if os.path.exists(filename):
+            logger.info("Reading contours from file {0}".format(filename))
+            with open(filename, 'r') as f:
+                ncontour = int(f.readline().split()[0])
+                logger.debug("Number of contours: {0}".format(ncontour))
+                numpoints = []
+                lon, lat = [], []
+                for nc in range(0, ncontour):
+                    npoints = int(f.readline().split()[0])
+                    numpoints.append(npoints)
+                    xx, yy = [], []
+                    for pp in range(0, npoints):
+                        # Read the coordinates of the sub-contour
+                        coords = f.readline()
+                        xx.append(float(coords.split()[0]))
+                        yy.append(float(coords.split()[1]))
+                    lon.append(xx)
+                    lat.append(yy)
+            self.x = np.array(lon)
+            self.y = np.array(lat)
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
+
     def add_to_plot(self, **kwargs):
         """Add the contours to the plot
         """
@@ -248,16 +334,6 @@ class Diva2DContours(object):
             plt.plot(np.append(lon, lon[0]),
                      np.append(lat, lat[0]),
                      **kwargs)
-
-    @property
-    def get_points_number(self):
-        """For each contour, return the number of points
-        """
-        ncontour = self.get_contours_number
-        npoints = []
-        for i in range(0, ncontour):
-            npoints.append(len(self.x[i]))
-        return npoints
 
 
 class Diva2DParameters(object):
@@ -271,21 +347,22 @@ class Diva2DParameters(object):
         :param cl: Correlation length
         :type cl: float
         """
-        self.cl = cl
-        self.icoordchange = icoordchange
-        self.ispec = ispec
-        self.ireg = ireg
-        self.xori = xori
-        self.yori = yori
-        self.dx = dx
-        self.dy = dy
-        self.nx = nx
-        self.ny = ny
-        self.valex = valex
-        self.snr = snr
-        self.varbak = varbak
-        self.xend = self.xori + (self.nx - 1) * self.dx
-        self.yend = self.yori + (self.ny - 1) * self.dy
+        if not(cl is None):
+            self.cl = cl
+            self.icoordchange = icoordchange
+            self.ispec = ispec
+            self.ireg = ireg
+            self.xori = xori
+            self.yori = yori
+            self.dx = dx
+            self.dy = dy
+            self.nx = nx
+            self.ny = ny
+            self.valex = valex
+            self.snr = snr
+            self.varbak = varbak
+            # Compute domain limits for later use
+            self.get_domain()
 
         logger.info("Creating Diva 2D parameter object")
 
@@ -296,8 +373,10 @@ class Diva2DParameters(object):
         logger.info("icoordchange: {0}".format(self.icoordchange))
         logger.info("ispec: {0}".format(self.ispec))
         logger.info("ireg: {0}".format(self.ireg))
-        logger.info("xori: {0}, yori: {1}, dx: {2}, dy: {3}, nx: {4}, ny: {5}".format(self.xori, self.yori, self.dx,
-                                                                                self.dy, self.nx, self.ny))
+        logger.info("Domain: x-axis: from {0} to {1} with {2} steps of {3}".format(self.xori, self.xend,
+                                                                                   self.nx, self.dx))
+        logger.info("Domain: y-axis: from {0} to {1} with {2} steps of {3}".format(self.yori, self.yend,
+                                                                                   self.ny, self.dy))
         logger.info("Exclusion value: {0}".format(self.valex))
         logger.info("Signal-to-noise ratio: {0}".format(self.snr))
         logger.info("Variance of the background field: {0}".format(self.varbak))
@@ -305,6 +384,8 @@ class Diva2DParameters(object):
     def write_to(self, filename):
         """Create a DIVA 2D parameter file given the main analysis parameters
         defined as floats or integers.
+        :param filename: the name of the 'parameter' file
+        :type filename: str
         """
         paramstring = ("# Correlation Length lc \n{0} \n"
                        "# icoordchange \n{1} \n"
@@ -330,25 +411,35 @@ class Diva2DParameters(object):
     def read_from(self, filename):
         """Read the information contained in a DIVA parameter file
         and extract the analysis parameters
+        :param filename:
         """
-        cl, icoord, ispec, ireg, xori, yori, dx, dy, nx,\
-            ny, valex, snr, varbak = np.loadtxt(filename, comments='#', unpack=True)
+        if os.path.exists(filename):
+            logger.info("Reading parameters from file {0}".format(filename))
+            cl, icoord, ispec, ireg, xori, yori, dx, dy, nx,\
+                ny, valex, snr, varbak = np.loadtxt(filename, comments='#', unpack=True)
 
-        self.cl = cl
-        self.icoordchange = icoord
-        self.ispec = ispec
-        self.ireg = ireg
-        self.xori = xori
-        self.yori = yori
-        self.dx = dx
-        self.dy = dy
-        self.nx = nx
-        self.ny = ny
-        self.valex = valex
-        self.snr = snr
-        self.varbak = varbak
+            self.cl = cl
+            self.icoordchange = icoord
+            self.ispec = ispec
+            self.ireg = ireg
+            self.xori = xori
+            self.yori = yori
+            self.dx = dx
+            self.dy = dy
+            self.nx = nx
+            self.ny = ny
+            self.valex = valex
+            self.snr = snr
+            self.varbak = varbak
 
-        logger.info("Read from parameter file {0}".format(filename))
+            self.get_domain()
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
+
+    def get_domain(self):
+        self.xend = self.xori + (self.nx - 1) * self.dx
+        self.yend = self.yori + (self.ny - 1) * self.dy
 
     def plot_outputgrid(self, scalefactor=1, **kwargs):
         """Plot the specified output grid for the analyzed field.
@@ -384,6 +475,11 @@ class Diva2DValatxy(object):
             raise Exception("Input vectors have not the same length")
 
     def write_to(self, filename):
+        """Write the positions where the analysis has to be extracted into the selected file.
+        :param filename: the name of the 'valatxy' file
+        :type filename: str
+        :return:
+        """
         with open(filename, 'w') as f:
             for xx, yy in zip(self.x, self.y):
                 f.write("%s %s\n" % (xx, yy))
@@ -401,7 +497,6 @@ class Diva2DValatxy(object):
         """
         logger.debug('Adding extra analysis points to plot')
         plt.scatter(self.x, self.y, **kwargs)
-
 
 
 class Diva2DResults(object):
@@ -456,7 +551,7 @@ class Diva2DMesh(object):
 
     The mesh is never explicitely created by the user, but rather generated by a call to the
     script **divamesh**. It is based on the contour file (coast.cont) and the parameter list
-    (param.par)
+    (param.par).
     """
 
     def __init__(self, filename1, filename2):
@@ -495,7 +590,6 @@ class Diva2DMesh(object):
         logger.info("Number of nodes: {0}".format(self.nnodes))
         logger.info("Number of interfaces: {0}".format(self.ninterfaces))
         logger.info("Number of elements: {0}".format(self.nelements))
-
 
     def add_to_plot(self, ax, **kwargs):
         """Plot the finite element mesh using the patch function of matplotlib.
