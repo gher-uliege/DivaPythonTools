@@ -414,8 +414,8 @@ class Ncdfinfo(object):
              "'{8}'\n"
              'Acknowledgements\n'
              "'{9}'").format(self.title, self.reftime, self.timeval, self.cellmethod,
-                           self.institution, self.groupemail, self.source,
-                           self.comment, self.authoremail, self.acknowlegment)
+                             self.institution, self.groupemail, self.source,
+                             self.comment, self.authoremail, self.acknowlegment)
 
         with open(filename, 'w') as f:
             f.write(ncdfinfo_string)
