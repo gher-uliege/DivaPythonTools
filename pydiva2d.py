@@ -7,6 +7,7 @@ import os
 import linecache
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.basemap import Basemap
 import netCDF4
 from matplotlib import path
 from matplotlib import patches
@@ -61,6 +62,7 @@ class DivaDirectories(object):
 class Diva2Dfiles(object):
     """Diva 2D input and output files names based on the current Diva directory
     """
+
     def __init__(self, diva2d):
         """Creation of the Diva 2D 'file' object based on the main Diva 2D directory
         :param diva2d: Main directory for Diva 2D (path ending by divastripped)
@@ -106,12 +108,12 @@ class Diva2DData(object):
         :return:
         """
 
+        logger.info("Creating Diva 2D data object")
         if len(x):
             if (len(x) == len(y)) & (len(x) == len(field)):
                 self.x = x
                 self.y = y
                 self.field = field
-                logger.info("Creating Diva 2D data object")
             else:
                 logger.error("Input vectors have not the same length")
                 raise Exception("Input vectors have not the same length")
@@ -182,12 +184,20 @@ class Diva2DData(object):
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
 
-    def add_to_plot(self, **kwargs):
+    def add_to_plot(self, m=None, **kwargs):
         """Add the data points to the plot using a scatter plot.
+        :param map: basemap projection
+        :type map: mpl_toolkits.basemap.Basemap
         :param kwargs: options for the plot
         """
-        logger.debug('Adding data points to plot')
-        plt.scatter(self.x, self.y, c=self.field, **kwargs)
+        if m is None:
+            logger.debug("No projection defined")
+            logger.debug('Adding data points to plot')
+            plt.scatter(self.x, self.y, c=self.field, **kwargs)
+        else:
+            logger.debug("Applying projection to coordinates")
+            logger.debug('Adding data points to map')
+            m.scatter(self.x, self.y, c=self.field, latlon=True, **kwargs)
 
     def add_positions_to_plot(self, **kwargs):
         """Add the data positions to the plot.
@@ -221,11 +231,11 @@ class Diva2DContours(object):
         :param y: y-coordinates of the contours
         :type y: numpy ndarray
         """
+        logger.info("Creating Diva 2D contour object")
         if len(x):
             if len(x) == len(y):
                 self.x = x
                 self.y = y
-                logger.info("Creating Diva 2D contour object")
             else:
                 Exception("Input vectors have not the same length")
                 logger.error("Input vectors have not the same length")
@@ -262,7 +272,7 @@ class Diva2DContours(object):
             f.write(str(ncontour) + '\n')
             for i in range(0, ncontour):
 
-                logger.debug("Sub-contour no. {0} has {1} points".format(i+1, npoints[i]))
+                logger.debug("Sub-contour no. {0} has {1} points".format(i + 1, npoints[i]))
                 f.write(str(npoints[i]) + '\n')
                 for xx, yy in zip(self.x[i], self.y[i]):
                     line = ' '.join((str(xx), str(yy)))
@@ -358,15 +368,26 @@ class Diva2DContours(object):
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
 
-    def add_to_plot(self, **kwargs):
+    def add_to_plot(self, m=None, **kwargs):
         """Add the contours to the plot
-        :param **kwargs: options for the plot
+        :param kwargs: options for the plot
         """
-        for lon, lat in zip(self.x, self.y):
-            # Append first element of the array to close the contour
-            plt.plot(np.append(lon, lon[0]),
-                     np.append(lat, lat[0]),
-                     **kwargs)
+
+        if m is None:
+            logger.debug("No projection defined")
+            logger.debug('Adding contours to plot')
+            for lon, lat in zip(self.x, self.y):
+                # Append first element of the array to close the contour
+                plt.plot(np.append(lon, lon[0]),
+                         np.append(lat, lat[0]),
+                         **kwargs)
+        else:
+            logger.debug("Applying projection to coordinates")
+            logger.debug('Adding contours to map')
+            for lon, lat in zip(self.x, self.y):
+                m.plot(np.append(lon, lon[0]),
+                       np.append(lat, lat[0]),
+                       latlon=True, **kwargs)
 
 
 class Diva2DParameters(object):
@@ -404,7 +425,7 @@ class Diva2DParameters(object):
         :param varbak: variance of the background field
         :type varbak: float
         """
-        if not(cl is None):
+        if not (cl is None):
             self.cl = cl
             self.icoordchange = icoordchange
             self.ispec = ispec
@@ -427,17 +448,17 @@ class Diva2DParameters(object):
     def describe(self):
         """Print the parameter values read from the parameter file
         """
-        logger.info("Correlation length: {0}".format(self.cl))
-        logger.info("icoordchange: {0}".format(self.icoordchange))
-        logger.info("ispec: {0}".format(self.ispec))
-        logger.info("ireg: {0}".format(self.ireg))
-        logger.info("Domain: x-axis: from {0} to {1} with {2} steps of {3}".format(self.xori, self.xend,
-                                                                                   self.nx, self.dx))
-        logger.info("Domain: y-axis: from {0} to {1} with {2} steps of {3}".format(self.yori, self.yend,
-                                                                                   self.ny, self.dy))
-        logger.info("Exclusion value: {0}".format(self.valex))
-        logger.info("Signal-to-noise ratio: {0}".format(self.snr))
-        logger.info("Variance of the background field: {0}".format(self.varbak))
+        print("Correlation length: {0}".format(self.cl))
+        print("icoordchange: {0}".format(self.icoordchange))
+        print("ispec: {0}".format(self.ispec))
+        print("ireg: {0}".format(self.ireg))
+        print("Domain: x-axis: from {0} to {1} with {2} steps of {3}".format(self.xori, self.xend,
+                                                                             self.nx, self.dx))
+        print("Domain: y-axis: from {0} to {1} with {2} steps of {3}".format(self.yori, self.yend,
+                                                                             self.ny, self.dy))
+        print("Exclusion value: {0}".format(self.valex))
+        print("Signal-to-noise ratio: {0}".format(self.snr))
+        print("Variance of the background field: {0}".format(self.varbak))
 
     def write_to(self, filename):
         """Create a DIVA 2D parameter file given the main analysis parameters
@@ -471,6 +492,7 @@ class Diva2DParameters(object):
         """Read the information contained in a DIVA parameter file
         and extract the analysis parameters
         :param filename: name of the 'parameter' file
+        :type filename: str
         """
         if os.path.exists(filename):
             logger.info("Reading parameters from file {0}".format(filename))
@@ -478,15 +500,15 @@ class Diva2DParameters(object):
                 ny, valex, snr, varbak = np.loadtxt(filename, comments='#', unpack=True)
 
             self.cl = cl
-            self.icoordchange = icoord
-            self.ispec = ispec
-            self.ireg = ireg
+            self.icoordchange = int(icoord)
+            self.ispec = int(ispec)
+            self.ireg = int(ireg)
             self.xori = xori
             self.yori = yori
             self.dx = dx
             self.dy = dy
-            self.nx = nx
-            self.ny = ny
+            self.nx = int(nx)
+            self.ny = int(ny)
             self.valex = valex
             self.snr = snr
             self.varbak = varbak
@@ -498,7 +520,7 @@ class Diva2DParameters(object):
 
     def get_domain(self):
         """
-
+        :rtype : object
         :type self: object
         """
         self.xend = self.xori + (self.nx - 1) * self.dx
@@ -586,32 +608,54 @@ class Diva2DResults(object):
             with netCDF4.Dataset(filename) as nc:
                 self.x = nc.variables['x'][:]
                 self.y = nc.variables['y'][:]
-                self.field = nc.variables['analyzed_field'][:]
+                self.analysis = nc.variables['analyzed_field'][:]
                 try:
                     self.error = nc.variables['error_field'][:]
                 except KeyError:
-                    logger.warning('No error field in the netCDF file (will return)')
-                    self.error = np.nan * self.field
+                    logger.warning("No error field in the netCDF file (will return NaN's)")
+                    self.error = np.nan * self.analysis
         except OSError:
             logger.error("File {0} does not exist".format(filename))
 
-    def add_to_plot(self, field, **kwargs):
+    def add_to_plot(self, ax, m=None, field='analysis', **kwargs):
         """Add the result to the plot
         :param field: 'result' or 'error'
         :type field: str
         :param **kwargs: options for the plot
         """
-        if field == 'result':
-            logger.debug('Adding analysed field to plot')
-            plt.pcolormesh(self.x, self.y, self.field, **kwargs)
-            plt.colorbar()
-        elif field == 'error':
-            logger.debug('Adding error field to plot')
-            plt.pcolormesh(self.x, self.y, self.error, **kwargs)
-            plt.colorbar()
+
+        if m is None:
+            logger.debug("No projection defined")
+            if field == 'analysis':
+                logger.debug('Adding analysed field to plot')
+                plt.pcolormesh(self.x, self.y, self.analysis, **kwargs)
+                plt.colorbar()
+            elif field == 'error':
+                logger.debug('Adding error field to plot')
+                plt.pcolormesh(self.x, self.y, self.error, **kwargs)
+                plt.colorbar()
+            else:
+                logger.error("Field selected for plot does not exist")
+                logger.error("Try 'analysis' or 'error'")
         else:
-            logger.error("Field selected for plot does not exist")
-            logger.error("Try 'result' or 'error'")
+            m.ax = ax
+            logger.debug("Applying projection to coordinates")
+            xx, yy = np.meshgrid(self.x, self.y)
+            if field == 'analysis':
+                logger.debug('Adding analysed field to plot')
+                pcm = m.pcolormesh(xx, yy, self.analysis, ax=m.ax, latlon=True, **kwargs)
+                plt.colorbar(pcm)
+                #m.ax.set_xlim(xx.min(), xx.max())
+                #m.ax.set_ylim(yy.min(), yy.max())
+            elif field == 'error':
+                logger.debug('Adding error field to plot')
+                pcm = m.pcolormesh(xx, yy, self.error, ax=m.ax, latlon=True, **kwargs)
+                plt.colorbar(pcm)
+                #m.ax.set_xlim(xx.min(), xx.max())
+                #m.ax.set_ylim(yy.min(), yy.max())
+            else:
+                logger.error("Field selected for plot does not exist")
+                logger.error("Try 'analysis' or 'error'")
 
 
 class Diva2DMesh(object):
@@ -662,28 +706,52 @@ class Diva2DMesh(object):
     def describe(self):
         """Summarise the mesh characteristics
         """
-        logger.info("Number of nodes: {0}".format(self.nnodes))
-        logger.info("Number of interfaces: {0}".format(self.ninterfaces))
-        logger.info("Number of elements: {0}".format(self.nelements))
+        print("Number of nodes: {0}".format(self.nnodes))
+        print("Number of interfaces: {0}".format(self.ninterfaces))
+        print("Number of elements: {0}".format(self.nelements))
 
-    def add_to_plot(self, ax, **kwargs):
+    def add_to_plot(self, ax, m=None, **kwargs):
         """Plot the finite element mesh using the patch function of matplotlib.
 
-        An ax object should exist in order to add the patches to the plot.
+        An 'ax' object should exist in order to add the patches to the plot.
         It is also possible to make the plot using simple line. That method is slower.
+        :param ax: axes
+        :type ax: matplotlib.axes._subplots.AxesSubplot
         """
-        for j in range(0, self.nelements):
-            verts = [(self.xnode[self.i1[j]], self.ynode[self.i1[j]]),
-                     (self.xnode[self.i2[j]], self.ynode[self.i2[j]]),
-                     (self.xnode[self.i3[j]], self.ynode[self.i3[j]]),
-                     (self.xnode[self.i1[j]], self.ynode[self.i1[j]])]
-            meshpath = path.Path(verts)
-            meshpatch = patches.PathPatch(meshpath, facecolor='none', **kwargs)
-            ax.add_patch(meshpatch)
 
-        logger.debug('Adding finite-element mesh to plot')
-        ax.set_xlim(self.xnode.min(), self.xnode.max())
-        ax.set_ylim(self.ynode.min(), self.ynode.max())
+        if m is None:
+            logger.debug("No projection defined")
+            logger.debug('Adding finite-element mesh to plot')
+
+            for j in range(0, self.nelements):
+                verts = [(self.xnode[self.i1[j]], self.ynode[self.i1[j]]),
+                         (self.xnode[self.i2[j]], self.ynode[self.i2[j]]),
+                         (self.xnode[self.i3[j]], self.ynode[self.i3[j]]),
+                         (self.xnode[self.i1[j]], self.ynode[self.i1[j]])]
+                meshpath = path.Path(verts)
+                meshpatch = patches.PathPatch(meshpath, facecolor='none', **kwargs)
+                ax.add_patch(meshpatch)
+
+            logger.debug('Setting limits to axes')
+            ax.set_xlim(self.xnode.min(), self.xnode.max())
+            ax.set_ylim(self.ynode.min(), self.ynode.max())
+        else:
+            logger.debug("Applying projection to coordinates")
+            logger.debug('Adding finite-element mesh to map')
+            xnode, ynode = m(self.xnode, self.ynode)
+            m.ax = ax
+            for j in range(0, self.nelements):
+                verts = [(xnode[self.i1[j]], ynode[self.i1[j]]),
+                         (xnode[self.i2[j]], ynode[self.i2[j]]),
+                         (xnode[self.i3[j]], ynode[self.i3[j]]),
+                         (xnode[self.i1[j]], ynode[self.i1[j]])]
+                meshpath = path.Path(verts)
+                meshpatch = patches.PathPatch(meshpath, facecolor='none', **kwargs)
+                m.ax.add_patch(meshpatch)
+
+            logger.debug('Setting limits to axes')
+            m.ax.set_xlim(xnode.min(), xnode.max())
+            m.ax.set_ylim(ynode.min(), ynode.max())
 
         '''
         xx = (self.xnode[self.i1[j]], self.xnode[self.i2[j]], self.xnode[self.i3[j]], self.xnode[self.i1[j]])
@@ -693,8 +761,7 @@ class Diva2DMesh(object):
 
 
 def main():
-    parameters2d = Diva2DParameters(1.5, 0, 0, 1, -10., -10., 0.2, 0.2, 101, 101, -999, 3.0, 1.0)
-    parameters2d.list_parameters()
+    """Do something here"""
 
 
 if __name__ == "__main__":
