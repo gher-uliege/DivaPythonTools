@@ -492,7 +492,6 @@ class Diva2DParameters(object):
                     self.description = 'unknown value'
     '''
 
-
     def describe(self):
         """Provide a description of the parameter values stored in the parameter file
 
@@ -690,14 +689,14 @@ class Diva2DResults(object):
                 logger.debug('Adding analysed field to plot')
                 pcm = m.pcolormesh(xx, yy, self.analysis, ax=m.ax, latlon=True, **kwargs)
                 plt.colorbar(pcm)
-                #m.ax.set_xlim(xx.min(), xx.max())
-                #m.ax.set_ylim(yy.min(), yy.max())
+                # m.ax.set_xlim(xx.min(), xx.max())
+                # m.ax.set_ylim(yy.min(), yy.max())
             elif field == 'error':
                 logger.debug('Adding error field to plot')
                 pcm = m.pcolormesh(xx, yy, self.error, ax=m.ax, latlon=True, **kwargs)
                 plt.colorbar(pcm)
-                #m.ax.set_xlim(xx.min(), xx.max())
-                #m.ax.set_ylim(yy.min(), yy.max())
+                # m.ax.set_xlim(xx.min(), xx.max())
+                # m.ax.set_ylim(yy.min(), yy.max())
             else:
                 logger.error("Field selected for plot does not exist")
                 logger.error("Try 'analysis' or 'error'")
@@ -774,7 +773,7 @@ class Diva2DMesh(object):
                          (self.xnode[self.i3[j]], self.ynode[self.i3[j]]),
                          (self.xnode[self.i1[j]], self.ynode[self.i1[j]])]
                 meshpath = path.Path(verts)
-                meshpatch = patches.PathPatch(meshpath, facecolor='none', **kwargs)
+                meshpatch = patches.PathPatch(meshpath, **kwargs)
                 ax.add_patch(meshpatch)
 
             logger.debug('Setting limits to axes')
@@ -791,7 +790,7 @@ class Diva2DMesh(object):
                          (xnode[self.i3[j]], ynode[self.i3[j]]),
                          (xnode[self.i1[j]], ynode[self.i1[j]])]
                 meshpath = path.Path(verts)
-                meshpatch = patches.PathPatch(meshpath, facecolor='none', **kwargs)
+                meshpatch = patches.PathPatch(meshpath, **kwargs)
                 m.ax.add_patch(meshpatch)
 
             logger.debug('Setting limits to axes')

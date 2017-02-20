@@ -33,7 +33,7 @@ class Diva4Dfiles(object):
             self.qflist = os.path.join(self.diva4ddir, 'qflist')
             self.varlist = os.path.join(self.diva4ddir, 'varlist')
             self.yearlist = os.path.join(self.diva4ddir, 'yearlist')
-            self.contourdepth = os.path.join(self.diva4ddir, 'contourdepth')
+            self.contourdepth = os.path.join(self.diva4ddir, 'input/contour.depth')
             self.ncdfinfo = os.path.join(self.diva4ddir, 'ncdfinfo')
             self.param = os.path.join(self.diva4ddir, 'input/param.par')
             logger.info("Creating Diva 4D file names and paths")
@@ -324,7 +324,7 @@ class Contourdepth(object):
     """Diva 4D input file listing the depth levels on which the data have to be extracted
     and the interpolation performed.
     """
-    def __init__(self, depthlist):
+    def __init__(self, depthlist=None):
         """
         :param depthlist: List of depths (floats, >= 0)
         :type depthlist: list
@@ -344,12 +344,30 @@ class Contourdepth(object):
 
         logger.info("Written into file {0}".format(filename))
 
+    def read_from(self, filename):
+        """Get the depth contour from an already existing 'contour.depth' file.
+        :param filename: name of the file where the contour depths are written.
+        :type filename: str
+        """
+        depthlist = []
+        if os.path.exists(filename):
+            logger.info("Reading depth levels from file {0}".format(filename))
+            with open(filename, 'r') as f:
+                line = f.readline()
+                while len(line) > 0:
+                    depthlist.append(float(line.split()[0]))
+                    line = f.readline()
+            self.depthlist = depthlist
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
+
 
 class Ncdfinfo(object):
     """Diva 4D input file listing metadata that will be written to the result netCDF file.
     """
-    def __init__(self, title, reftime, timeval, cellmethod, institution,
-                 groupemail, source, comment, authoremail, acknowlegment):
+    def __init__(self, title=None, reftime=None, timeval=None, cellmethod=None, institution=None,
+                 groupemail=None, source=None, comment=None, authoremail=None, acknowledgment=None):
         """
         :param title: title of the netCDF file
         :type title: str
@@ -369,8 +387,8 @@ class Ncdfinfo(object):
         :type comment: str
         :param authoremail: Author e-mail address (or contact person to report problems)
         :type authoremail: str
-        :param acknowlegment: Acknowlegments
-        :type acknowlegment: str
+        :param acknowledgment: acknowledgment
+        :type acknowledgment: str
         :return:
         """
         logger.info("Creating Diva 4D Ncdfinfo object")
@@ -383,7 +401,7 @@ class Ncdfinfo(object):
         self.source = source
         self.comment = comment
         self.authoremail = authoremail
-        self.acknowlegment = acknowlegment
+        self.acknowledgment = acknowledgment
 
     def write_to(self, filename):
         """Write the netCDF metadata information in the specified file.
@@ -413,9 +431,33 @@ class Ncdfinfo(object):
              'Acknowledgements\n'
              "'{9}'").format(self.title, self.reftime, self.timeval, self.cellmethod,
                              self.institution, self.groupemail, self.source,
-                             self.comment, self.authoremail, self.acknowlegment)
+                             self.comment, self.authoremail, self.acknowledgment)
 
         with open(filename, 'w') as f:
             f.write(ncdfinfo_string)
 
         logger.info("Written into file {0}".format(filename))
+
+    def read_from(self, filename):
+        """Get the netCDF metadata information from an existing 'Ncdfinfo' file.
+
+        :type self: object
+        :param filename: name of the file where the contour depths are written.
+        :type filename: str
+        """
+        if os.path.exists(filename):
+            logger.info("Reading depth levels from file {0}".format(filename))
+            # Start with empty list
+            ncdfinfo = []
+            with open(filename, 'r') as f:
+                line = f.readline()
+                # Continue until line is empty
+                while line:
+                    ncdfinfo.append(line.rstrip())
+                    line = f.readline()
+            self.title, self.freftime, self.timeval, self.cellmethod,\
+                self.institution, self.groupemail, self.source, self.comment,\
+                self.authoremail, self.acknowledgment = ncdfinfo[1::2]
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
