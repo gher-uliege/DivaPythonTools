@@ -6,6 +6,7 @@ import logging
 import os
 import linecache
 import numpy as np
+import datetime
 import matplotlib.pyplot as plt
 from mpl_toolkits.basemap import Basemap
 import netCDF4
@@ -13,22 +14,31 @@ from matplotlib import path
 from matplotlib import patches
 
 
-# create logger
-logger = logging.getLogger('diva2D')
-logger.setLevel(logging.DEBUG)
-# create file handler which logs even debug messages
-fh = logging.FileHandler('diva2D.log')
-fh.setLevel(logging.DEBUG)
-# create console handler with a higher log level
-ch = logging.StreamHandler()
-ch.setLevel(logging.ERROR)
-# create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
-ch.setFormatter(formatter)
-# add the handlers to the logger
-logger.addHandler(fh)
-logger.addHandler(ch)
+logfile = ''.join(('./logs/Diva_', datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'), '.log'))
+
+def makeDivaLogger(logname, logfile):
+    """Create logger object to handle messages
+    """
+    logger = logging.getLogger(logname)
+    logger.setLevel(logging.DEBUG)
+    # create file handler which logs even debug messages
+    fh = logging.FileHandler(logfile)
+    fh.setLevel(logging.DEBUG)
+    # create console handler with a higher log level
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.ERROR)
+    # create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    fh.setFormatter(formatter)
+    ch.setFormatter(formatter)
+    # add the handlers to the logger
+    logger.addHandler(fh)
+    logger.addHandler(ch)
+
+    return logger
+
+logger = makeDivaLogger(__name__, logfile)
+logger.info("Logs written in file\n{0}".format(logfile))
 
 
 class DivaDirectories(object):
@@ -49,11 +59,11 @@ class DivaDirectories(object):
             self.diva4dinput = os.path.join(self.divamain, 'JRA4/Climatology/input')
             logger.info('Diva main directory: {0}'.format(self.divamain))
             logger.info('Creating Diva directory paths')
-            logger.info("Diva binary directory: {0}".format(self.divabin))
-            logger.info("Diva source directory: {0}".format(self.divasrc))
-            logger.info("Diva 2D directory: {0}".format(self.diva2d))
-            logger.info("Diva 4D directory: {0}".format(self.diva4d))
-            logger.info("Diva 4D input directory: {0}".format(self.diva4dinput))
+            logger.info("Binary directory:   {0}".format(self.divabin))
+            logger.info("Source directory:   {0}".format(self.divasrc))
+            logger.info("Main 2D directory:  {0}".format(self.diva2d))
+            logger.info("Main 4D directory:  {0}".format(self.diva4d))
+            logger.info("4D input directory: {0}".format(self.diva4dinput))
 
         else:
             logging.error("{0} is not a directory or doesn't exist".format(self.divamain))
@@ -80,12 +90,12 @@ class Diva2Dfiles(object):
             self.mesh = os.path.join(self.diva2d, 'meshgenwork/fort.22')
             self.meshtopo = os.path.join(self.diva2d, 'meshgenwork/fort.23')
             logger.info("Creating Diva 2D file names and paths")
-            logger.info("Contour file: {0}".format(self.contour))
+            logger.info("Contour file:   {0}".format(self.contour))
             logger.info("Parameter file: {0}".format(self.parameter))
-            logger.info("Data file: {0}".format(self.data))
-            logger.info("Valatxy file: {0}".format(self.valatxy))
-            logger.info("Result file: {0}".format(self.result))
-            logger.info("Mesh file: {0}".format(self.mesh))
+            logger.info("Data file:      {0}".format(self.data))
+            logger.info("Valatxy file:   {0}".format(self.valatxy))
+            logger.info("Result file:    {0}".format(self.result))
+            logger.info("Mesh file:      {0}".format(self.mesh))
             logger.info("Mesh topo file: {0}".format(self.meshtopo))
         else:
             logger.error("%{0} is not a directory or doesn't exist".format(self.diva2d))
@@ -221,7 +231,7 @@ class Diva2DData(object):
 
 
 class Diva2DContours(object):
-    """Class the stores the properties of a contour
+    """Class that stores the properties of a contour
     """
 
     def __init__(self, x=np.array(()), y=np.array(())):
@@ -392,11 +402,17 @@ class Diva2DContours(object):
 
 class Diva2DParameters(object):
     """Class that stores the parameter properties
+
+    Example:
+    ========
+
+    Parameters = Diva2DParameters(CorrelationLength, iCoordChange, iSpec, iReg, xmin, ymin, dx, dy,
+                                  nx, ny, ExclusionValue, SignalToNoiseRatio, VarianceBackgroundField)
     """
 
-    def __init__(self, cl=None, icoordchange=None, ispec=None, ireg=None,
+    def __init__(self, cl=None, icoordchange=0, ispec=0, ireg=0,
                  xori=None, yori=None, dx=None, dy=None, nx=None, ny=None,
-                 valex=None, snr=None, varbak=None):
+                 valex=-999., snr=None, varbak=None):
         """Creation of the Diva 2D 'data' object using the user inputs.
         :param cl: correlation length
         :type cl: float
@@ -425,31 +441,66 @@ class Diva2DParameters(object):
         :param varbak: variance of the background field
         :type varbak: float
         """
-        if not (cl is None):
-            self.cl = cl
-            self.icoordchange = icoordchange
-            self.ispec = ispec
-            self.ireg = ireg
-            self.xori = xori
-            self.yori = yori
-            self.dx = dx
-            self.dy = dy
-            self.nx = nx
-            self.ny = ny
-            self.valex = valex
-            self.snr = snr
-            self.varbak = varbak
 
-            # Compute domain limits for later use
-            self.get_domain()
+        self.cl = cl
+        self.icoordchange = icoordchange
+        self.ispec = ispec
+        self.ireg = ireg
+        self.xori = xori
+        self.yori = yori
+        self.dx = dx
+        self.dy = dy
+        self.nx = nx
+        self.ny = ny
+        self.valex = valex
+        self.snr = snr
+        self.varbak = varbak
+
+        # Compute domain limits for later use
+        if self.nx and self.dx and self.xori:
+            self.xend = self.xori + (self.nx - 1) * self.dx
+        else:
+            self.xend = None
+        if self.ny and self.dy and self.yori:
+            self.yend = self.yori + (self.ny - 1) * self.dy
+        else:
+            self.yend = None
 
         logger.info("Creating Diva 2D parameter object")
 
+    '''
+    class Icoord(object):
+
+        def __init__(self, icoordchange=0):
+            self.icoordchange = icoordchange
+            print(icoordchange)
+
+        def describe(self):
+            if self.icoordchange == None:
+                logger.warning("icoordchange not defined")
+                self.description = ' '
+            else:
+                if self.icoordchange == 0:
+                    self.description = 'no change is necessary ; same coordinates as data'
+                elif self.icoordchange == 1:
+                    self.description = 'convertion from degrees to kilometers'
+                elif self.icoordchange == 2:
+                    self.description = 'conversion from degrees to kilometers using a cosine projection'
+                elif self.icoordchange < 0:
+                    self.description = 'apply scale factor xscale before doing starting the calculation'
+                else:
+                    self.description = 'unknown value'
+    '''
+
+
     def describe(self):
-        """Print the parameter values read from the parameter file
+        """Provide a description of the parameter values stored in the parameter file
+
+        If the parameters were not initialised, returns None for each value.
         """
+
         print("Correlation length: {0}".format(self.cl))
-        print("icoordchange: {0}".format(self.icoordchange))
+        print("icoordchange: {0}\n({1})".format(self.icoordchange))
         print("ispec: {0}".format(self.ispec))
         print("ireg: {0}".format(self.ireg))
         print("Domain: x-axis: from {0} to {1} with {2} steps of {3}".format(self.xori, self.xend,
@@ -513,18 +564,12 @@ class Diva2DParameters(object):
             self.snr = snr
             self.varbak = varbak
 
-            self.get_domain()
+            # Compute domain limits for later use
+            self.xend = self.xori + (self.nx - 1) * self.dx
+            self.yend = self.yori + (self.ny - 1) * self.dy
         else:
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
-
-    def get_domain(self):
-        """
-        :rtype : object
-        :type self: object
-        """
-        self.xend = self.xori + (self.nx - 1) * self.dx
-        self.yend = self.yori + (self.ny - 1) * self.dy
 
     def plot_outputgrid(self, scalefactor=1, **kwargs):
         """Plot the specified output grid for the analyzed field.

@@ -4,26 +4,14 @@ __author__ = 'ctroupin'
 
 import logging
 import os
+from pydiva2d import *
 import numpy as np
 import matplotlib.pyplot as plt
 import netCDF4
 
-# create logger with 'spam_application'
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-# create file handler which logs even debug messages
-fh = logging.FileHandler('diva4D.log')
-fh.setLevel(logging.DEBUG)
-# create console handler with a higher log level
-ch = logging.StreamHandler()
-ch.setLevel(logging.ERROR)
-# create formatter and add it to the handlers
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-fh.setFormatter(formatter)
-ch.setFormatter(formatter)
-# add the handlers to the logger
-logger.addHandler(fh)
-logger.addHandler(ch)
+# If we want to have a specific logger for the messages depending on Diva4D
+# Probably not necessary
+logger = makeDivaLogger(__name__, logfile)
 
 
 class Diva4Dfiles(object):
@@ -48,17 +36,17 @@ class Diva4Dfiles(object):
             self.contourdepth = os.path.join(self.diva4ddir, 'contourdepth')
             self.ncdfinfo = os.path.join(self.diva4ddir, 'ncdfinfo')
             self.param = os.path.join(self.diva4ddir, 'input/param.par')
-
-            logger.info("datasource file: {0}".format(self.datasource))
+            logger.info("Creating Diva 4D file names and paths")
+            logger.info("datasource file:   {0}".format(self.datasource))
             logger.info("constandrefe file: {0}".format(self.constandrefe))
-            logger.info("driver file: {0}".format(self.driver))
-            logger.info("monthlist file: {0}".format(self.monthlist))
-            logger.info("qflist file: {0}".format(self.qflist))
-            logger.info("varlist file: {0}".format(self.varlist))
-            logger.info("yearlist file: {0}".format(self.yearlist))
+            logger.info("driver file:       {0}".format(self.driver))
+            logger.info("monthlist file:    {0}".format(self.monthlist))
+            logger.info("qflist file:       {0}".format(self.qflist))
+            logger.info("varlist file:      {0}".format(self.varlist))
+            logger.info("yearlist file:     {0}".format(self.yearlist))
             logger.info("contourdepth file: {0}".format(self.contourdepth))
-            logger.info("ncdfinfo file: {0}".format(self.ncdfinfo))
-            logger.info("param.par file: {0}".format(self.param))
+            logger.info("ncdfinfo file:     {0}".format(self.ncdfinfo))
+            logger.info("param.par file:    {0}".format(self.param))
         else:
             logging.error("%{0} is not a directory or doesn't exist".format(self.diva4ddir))
 
@@ -72,6 +60,8 @@ class Datasource(object):
         :param datafilelist: List of ODV spreadsheet files
         :type datafilelist: list
         """
+        logger.info("Creating Diva 4D Datasource object")
+
         if datafilelist is None:
             datafilelist = []
         elif isinstance(datafilelist, str):
@@ -111,7 +101,7 @@ class Constandrefe(object):
     and advection.
     """
 
-    def __init__(self, advection_flag, ref_flag, var_year_code='00000000', var_month_code='0000'):
+    def __init__(self, advection_flag=0, ref_flag=0, var_year_code='00000000', var_month_code='0000'):
         """
         :param advection_flag: Flag that indicates if advection is activated
         :type advection_flag: int
@@ -123,6 +113,7 @@ class Constandrefe(object):
         :type var_month_code: str
         :return:
         """
+        logger.info("Creating Diva 4D Constandrefe object")
         self.advection_flag = advection_flag
         self.ref_flag = ref_flag
         self.var_year_code = var_year_code
@@ -187,6 +178,7 @@ class Driver(object):
         :type detrend_groupnum: int
         :return:
         """
+        logger.info("Creating Diva 4D Driver object")
         self.extraction_flag = extraction_flag
         self.coast_flag = coast_flag
         self.clean_flag = clean_flag
@@ -244,6 +236,7 @@ class Monthlist(object):
         :type monthlist: list
         :return:
         """
+        logger.info("Creating Diva 4D Monthlist object")
         self.monthlist = monthlist
 
     def write_to(self, filename):
@@ -266,6 +259,7 @@ class Qflist(object):
         :type qflist: list
         :return:
         """
+        logger.info("Creating Diva 4D Qflist object")
         self.qflist = qflist
 
     def write_to(self, filename):
@@ -288,6 +282,7 @@ class Varlist(object):
         :type varlist: list
         :return:
         """
+        logger.info("Creating Diva 4D Varlist object")
         self.varlist = varlist
 
     def write_to(self, filename):
@@ -310,6 +305,7 @@ class Yearlist(object):
         :param yearlist: List of years describing the periods to be processed
         :type yearlist: list
         """
+        logger.info("Creating Diva 4D Yearlist object")
         self.yearlist = yearlist
 
     def write_to(self, filename):
@@ -333,6 +329,7 @@ class Contourdepth(object):
         :param depthlist: List of depths (floats, >= 0)
         :type depthlist: list
         """
+        logger.info("Creating Diva 4D Contourdepth object")
         self.depthlist = depthlist
 
     def write_to(self, filename):
@@ -376,6 +373,7 @@ class Ncdfinfo(object):
         :type acknowlegment: str
         :return:
         """
+        logger.info("Creating Diva 4D Ncdfinfo object")
         self.title = title
         self.reftime = reftime
         self.timeval = timeval
