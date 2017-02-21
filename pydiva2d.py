@@ -290,11 +290,11 @@ class Diva2DContours(object):
 
         logger.info("Written contours into file {0}".format(filename))
 
-    def read_from_slow(self, filename):
+    def read_from_np(self, filename):
         """Get the coordinates of the contour from an already existing contour file.
 
-        The function use 'genfromtxt' several times and is not optimised at all.
-        For large contour files, use 'read_from' function.
+        The function use numpy method 'genfromtxt' several times and is not optimised at all.
+        For large contour files, prefer 'read_from' function.
         :parameter: filename: str
         :return: lon: numpy ndarray
         :return: lat: numpy ndarray
@@ -714,9 +714,43 @@ class Diva2DMesh(object):
     (param.par).
     """
 
-    def __init__(self, filename1, filename2):
+    def __init__(self, nnodes=None, ninterfaces=None, nelements=None,
+                 xnode=None, ynode=None, i1=None, i2=None, i3=None):
+        """
+        :param nnodes: number of nodes in the finite-element mesh
+        :type nnodes: int
+        :param ninterfaces: number of interfaces in the finite-element mesh
+        :type ninterfaces: int
+        :param nelements: number of elements in the finite-element mesh
+        :type nelements: int
+        :param xnode: x-coordinates of the mesh nodes
+        :type xnode: numpy.ndarray
+        :param ynode: y-coordinates of the mesh nodes
+        :type ynode: numpy.ndarray
+        :param i1: indices of the elements
+        :type i1: numpy.ndarray
+        :param i2: indices of the elements
+        :type i2: numpy.ndarray
+        :param i3: indices of the elements
+        :type i3: numpy.ndarray
+        :return:
+        """
+
+        logger.info("Creating Diva 2D mesh object")
+        self.nnodes = nnodes
+        self.ninterfaces = ninterfaces
+        self.nelements = nelements
+        self.xnode = xnode
+        self.ynode = ynode
+        self.i1 = i1
+        self.i2 = i2
+        self.i3 = i3
+
+    def read_from_np(self, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
+
+        This function uses numpy 'loadtxt' and 'genfromtxt' methods.
         :param filename1: name of the 'mesh' file (coordinates)
         :type filename1: str
         :param filename2: name of the 'meshtopo' file (topology)
@@ -747,6 +781,56 @@ class Diva2DMesh(object):
         self.i2 = meshelements[np.arange(2, self.nelements * 6, 6)] - 1
         self.i3 = meshelements[np.arange(4, self.nelements * 6, 6)] - 1
 
+    def read_from(self, filename1, filename2):
+        """Initialise the mesh object by reading the coordinates and the topology
+        from the specified files.
+
+        This function reads the files line by line using 'readline' methods
+        and then convert the lists to numpy array.
+        :param filename1: name of the 'mesh' file (coordinates)
+        :type filename1: str
+        :param filename2: name of the 'meshtopo' file (topology)
+        :type filename2: str
+        """
+        # Read mesh topology
+        with open(filename2) as f:
+            self.nnodes = int(f.readline().rstrip())
+            self.ninterfaces = int(f.readline().rstrip())
+            self.nelements = int(f.readline().rstrip())
+
+        # Initialise line index
+        nlines = 0
+        # and lists
+        xnode = []
+        ynode = []
+        interfaces = []
+        i1, i2, i3 = [], [], []
+
+        with open(filename1, 'r') as f:
+            # Read the node coordinates
+            while nlines < self.nnodes:
+                llines = f.readline().rsplit()
+                xnode.append(float(llines[1]))
+                ynode.append(float(llines[2]))
+                nlines += 1
+            # Read the interfaces
+            while nlines < self.nnodes + self.ninterfaces:
+                interfaces.append(int(f.readline().rsplit()[0]))
+                nlines += 1
+            # Read the elements
+            while nlines < self.nnodes + self.ninterfaces + self.nelements:
+                llines = f.readline().rsplit()
+                i1.append(int(llines[0]) - 1)
+                i2.append(int(llines[2]) - 1)
+                i3.append(int(llines[4]) - 1)
+                nlines += 1
+
+        self.xnode = np.array(xnode)
+        self.ynode = np.array(ynode)
+        self.i1 = np.array(i1)
+        self.i2 = np.array(i2)
+        self.i3 = np.array(i3)
+
     def describe(self):
         """Summarise the mesh characteristics
         """
@@ -758,7 +842,14 @@ class Diva2DMesh(object):
         """Plot the finite element mesh using the patch function of matplotlib.
 
         An 'ax' object should exist in order to add the patches to the plot.
-        It is also possible to make the plot using simple line. That method is slower.
+        The 'ax' object can be obtained with the command:
+
+            ax = plt.subplot(111)
+
+        among other possibilities.
+
+        It is also possible to make the plot using simple lines instead of patches.
+        That method is slower.
         :param ax: axes
         :type ax: matplotlib.axes._subplots.AxesSubplot
         """
@@ -772,6 +863,7 @@ class Diva2DMesh(object):
                          (self.xnode[self.i2[j]], self.ynode[self.i2[j]]),
                          (self.xnode[self.i3[j]], self.ynode[self.i3[j]]),
                          (self.xnode[self.i1[j]], self.ynode[self.i1[j]])]
+
                 meshpath = path.Path(verts)
                 meshpatch = patches.PathPatch(meshpath, **kwargs)
                 ax.add_patch(meshpatch)
@@ -803,10 +895,29 @@ class Diva2DMesh(object):
         plt.plot(xx, yy, **kwargs)
         '''
 
+    def add_element_num(self, ax, m=None, **kwargs):
+        """Write the element number at the center of each triangle.
+        :param ax: axes
+        :type ax: matplotlib.axes._subplots.AxesSubplot
+        """
+
+        if m is None:
+            for j in range(0, self.nelements):
+                xnodemean = (1./3.) * (self.xnode[self.i1[j]] + self.xnode[self.i2[j]] + self.xnode[self.i3[j]])
+                ynodemean = (1./3.) * (self.ynode[self.i1[j]] + self.ynode[self.i2[j]] + self.ynode[self.i3[j]])
+                ax.text(xnodemean, ynodemean, str(j + 1),
+                        ha='center', va='center', **kwargs)
+        else:
+            xnode, ynode = m(self.xnode, self.ynode)
+            m.ax = ax
+            for j in range(0, self.nelements):
+                xnodemean = (1./3.) * (self.xnode[self.i1[j]] + self.xnode[self.i2[j]] + self.xnode[self.i3[j]])
+                ynodemean = (1./3.) * (self.ynode[self.i1[j]] + self.ynode[self.i2[j]] + self.ynode[self.i3[j]])
+                m.ax.text(xnodemean, ynodemean, str(j + 1),
+                          ha='center', va='center', **kwargs)
 
 def main():
     """Do something here"""
-
 
 if __name__ == "__main__":
     main()
