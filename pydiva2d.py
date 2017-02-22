@@ -19,6 +19,7 @@ logfile = ''.join(('./logs/Diva_', datetime.datetime.now().strftime('%Y-%m-%d_%H
 def makeDivaLogger(logname, logfile):
     """Create logger object to handle messages
     """
+
     logger = logging.getLogger(logname)
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
@@ -879,8 +880,10 @@ class Diva2DMesh(object):
         yy = []
         # Read each element coordinates and add a NaN to avoid plotting lines joining 2 elements
         for j in range(0, self.nelements):
-            xx.extend((self.xnode[self.i1[j]], self.xnode[self.i2[j]], self.xnode[self.i3[j]], self.xnode[self.i1[j]], np.nan))
-            yy.extend((self.ynode[self.i1[j]], self.ynode[self.i2[j]], self.ynode[self.i3[j]], self.ynode[self.i1[j]], np.nan))
+            xx.extend((self.xnode[self.i1[j]], self.xnode[self.i2[j]],
+                       self.xnode[self.i3[j]], self.xnode[self.i1[j]], np.nan))
+            yy.extend((self.ynode[self.i1[j]], self.ynode[self.i2[j]],
+                       self.ynode[self.i3[j]], self.ynode[self.i1[j]], np.nan))
 
         # Convert to numpy array
         xx = np.array(xx)
@@ -910,7 +913,6 @@ class Diva2DMesh(object):
             logger.debug('Setting limits to axes')
             m.ax.set_xlim(np.nanmin(xx), np.nanmax(xx))
             m.ax.set_ylim(np.nanmin(yy), np.nanmax(yy))
-
 
     def add_to_plot_patch(self, ax, m=None, **kwargs):
         """Plot the finite element mesh using the 'patch' function of matplotlib.
@@ -986,13 +988,14 @@ class Diva2DMesh(object):
                 ax.text(xnodemean, ynodemean, str(j + 1),
                         ha='center', va='center', **kwargs)
         else:
-            xnode, ynode = m(self.xnode, self.ynode)
+            xnode_proj, ynode_proj = m(self.xnode, self.ynode)
             m.ax = ax
             for j in range(0, self.nelements):
-                xnodemean = (1./3.) * (self.xnode[self.i1[j]] + self.xnode[self.i2[j]] + self.xnode[self.i3[j]])
-                ynodemean = (1./3.) * (self.ynode[self.i1[j]] + self.ynode[self.i2[j]] + self.ynode[self.i3[j]])
+                xnodemean = (1./3.) * (xnode_proj[self.i1[j]] + xnode_proj[self.i2[j]] + xnode_proj[self.i3[j]])
+                ynodemean = (1./3.) * (ynode_proj[self.i1[j]] + ynode_proj[self.i2[j]] + ynode_proj[self.i3[j]])
                 m.ax.text(xnodemean, ynodemean, str(j + 1),
                           ha='center', va='center', **kwargs)
+
 
 def main():
     """Do something here"""
