@@ -11,7 +11,30 @@ import netCDF4
 
 # If we want to have a specific logger for the messages depending on Diva4D
 # Probably not necessary
-logger = makeDivaLogger(__name__, logfile)
+logger = divalogger(__name__, logfile)
+
+class Diva4DDirectories(DivaDirectories):
+    """Object storing the paths to the main Diva 4D directories: input, output,
+    mesh, fields, execution directory, ...
+    """
+    def __init__(self, divamain):
+
+        if os.path.isdir(divamain):
+            self.divamain = divamain
+            DivaDirectories.__init__(self, divamain)
+            self.diva4dinput = os.path.join(self.diva4d, 'JRA4/Climatology/input')
+            self.diva4doutput = os.path.join(self.diva4d, 'output/')
+            self.diva4dmesh = os.path.join(self.diva4d, 'newinput/divamesh/')
+            self.diva4dparam = os.path.join(self.diva4d, 'newinput/divaparam/')
+            self.diva4dfields = os.path.join(self.diva4d, 'output/3Danalysis/Fields')
+
+            logger.info('Diva 4D input directory: {0}'.format(self.diva4dinput))
+            logger.info('Diva 4D output directory: {0}'.format(self.diva4doutput))
+            logger.info('Diva 4D mesh directory: {0}'.format(self.diva4dmesh))
+            logger.info('Diva 4D parameter directory: {0}'.format(self.diva4dparam))
+            logger.info('Diva 4D field directory: {0}'.format(self.diva4dfields))
+        else:
+            logging.error("{0} is not a directory or doesn't exist".format(self.divamain))
 
 
 class Diva4Dfiles(object):
