@@ -120,7 +120,7 @@ class Constandrefe(object):
         self.var_month_code = var_month_code
 
     def write_to(self, filename):
-        """Write the 'constandrefe' parameter in the specified file.
+        """Write the 'constandrefe' parameters in the specified file.
         :param filename: name of the file where the parameters will be written.
         :param filename: str
         """
@@ -135,26 +135,55 @@ class Constandrefe(object):
 
         logger.info("Written into file {0}".format(filename))
 
+    def read_from(self, filename):
+        """Get the 'constandrefe' parameters from an existing file.
+
+        :type self: object
+        :param filename: name of the file where the contour depths are written.
+        :type filename: str
+        """
+        if os.path.exists(filename):
+            logger.info("Reading 'constandrefe' parameters from file {0}".format(filename))
+            # Start with empty list
+            constandrefe_param = []
+            with open(filename, 'r') as f:
+                line = f.readline()
+                # Continue until line is empty
+                while line:
+                    constandrefe_param.append(line.rstrip())
+                    line = f.readline()
+
+            # Keep only the odd lines
+            advection_flag, ref_flag, var_year_code, var_month_code = constandrefe_param[1::2]
+            # Change to integer type if necessary
+            self.advection_flag = int(advection_flag)
+            self.ref_flag = int(ref_flag)
+            self.var_year_code = var_year_code
+            self.var_month_code = var_month_code
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
+
 
 class Driver(object):
     """Diva 4D input file that specified how the analysis will be performed: domain,
-    resolution, parameters, ...
+    resolution, parameters, data extraction...
     """
-    def __init__(self, extraction_flag, coast_flag, clean_flag, min_datanum,
-                 param_flag, min_l, max_l, min_snr, max_snr,
-                 analysisref_flag, lower_level, upper_level, netcdf4d_flag,
-                 gnuplot_flag, detrend_groupnum):
+    def __init__(self, extraction_flag=0, coast_flag=0, clean_flag=0, min_datanum=0,
+                 param_flag=0, min_l=0.0, max_l=1000., min_snr=0.0, max_snr=1000.,
+                 analysisref_flag=0, lower_level=None, upper_level=None, netcdf4d_flag=0,
+                 gnuplot_flag=0, detrend_groupnum=0):
         """
         :param extraction_flag: extract flag: 1 do it, 0 do nothing, -1 press coord, -10 pressure+Saunders
         :type extraction_flag: int
         :param coast_flag: Boundary lines and coastlines generation: 0 nothing, 1: contours, 2: UV, 3: 1+2
         :type coast_flag: int
         :param clean_flag: cleaning data on mesh: 1, 2: RL, 3: both, 4: 1 + outliers elimination, 5: =4+2
-        :type
-        :param min_datanum:
-        :type min_datanum:
-        :param param_flag:
-        :type param_flag:
+        :type clean_flag: int
+        :param min_datanum: Minimal number of data in a layer
+        :type min_datanum: int
+        :param param_flag: Parameters estimation and vertical filtering
+        :type param_flag: int
         :param min_l: Minimal correlation length during optimization
         :type min_l: float
         :param max_l: Maximal correlation length during optimization
@@ -225,11 +254,60 @@ class Driver(object):
             f.write(driver_string)
         logger.info("Written into file {0}".format(filename))
 
+    def read_from(self, filename):
+        """Get the 'driver' parameters from an existing file.
+
+        :type self: object
+        :param filename: name of the file where the driver parameters are written.
+        :type filename: str
+        """
+        if os.path.exists(filename):
+            logger.info("Reading 'driver' parameters from file {0}".format(filename))
+            # Start with empty list
+            driver_param = []
+            with open(filename, 'r') as f:
+                line = f.readline()
+                # Continue until line is empty
+                while line:
+                    driver_param.append(line.rstrip())
+                    line = f.readline()
+
+            # Keep only the odd lines
+            extraction_flag, coast_flag, clean_flag, min_datanum,\
+                param_flag, min_l, max_l, min_snr, max_snr, analysisref_flag,\
+                lower_level, upper_level, netcdf4d_flag, gnuplot_flag, detrend_groupnum = driver_param[1::2]
+
+            # Change to integer type if necessary
+            self.extraction_flag = int(extraction_flag)
+            self.coast_flag = int(coast_flag)
+            self.clean_flag = int(clean_flag)
+            self.min_datanum = int(min_datanum)
+            self.param_flag = int(param_flag)
+            self.min_l = float(min_l)
+            self.max_l = float(max_l)
+            self.min_snr = float(min_snr)
+            self.max_snr = float(max_snr)
+            self.analysisref_flag = int(analysisref_flag)
+            self.lower_level = int(lower_level)
+            self.upper_level = int(upper_level)
+            self.netcdf4d_flag = int(netcdf4d_flag)
+            self.gnuplot_flag = int(gnuplot_flag)
+            self.detrend_groupnum = int(detrend_groupnum)
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
+
 
 class Monthlist(object):
-    """Diva 4D input file listing the months to be processed.
+    """Diva 4D input file listing the month periods to be processed.
+
+    Example:
+    =======
+
+        MonthList = MonthList(['0101', '0202']
+
     """
-    def __init__(self, monthlist):
+    def __init__(self, monthlist=None):
         """
         :param monthlist: List of strings representing periods in months
         (ex: 0101, 0202)
@@ -237,7 +315,13 @@ class Monthlist(object):
         :return:
         """
         logger.info("Creating Diva 4D Monthlist object")
-        self.monthlist = monthlist
+        if monthlist is None:
+            self.monthlist = []
+        else:
+            if isinstance(monthlist, str):
+                logger.debug("Converting string to list")
+                monthlist = [monthlist]
+            self.monthlist = monthlist
 
     def write_to(self, filename):
         """Write the month list in the specified file.
@@ -249,18 +333,59 @@ class Monthlist(object):
                 f.write(''.join((mm, '\n')))
         logger.info("Written in file {0}".format(filename))
 
+    def read_from(self, filename):
+        """Get the 'monthlist' values from an existing file.
+
+        Example:
+        =======
+
+            Monthlist.read_from(monthlistfile)
+
+        If the 'monthlist' is already defined, the use of 'read_from' will discard
+        the previous values.
+
+        :type self: object
+        :param filename: name of the file where the month periods are written.
+        :type filename: str
+        """
+        if os.path.exists(filename):
+            logger.info("Reading 'monthlist' values from file {0}".format(filename))
+            # Start with empty list
+            self.monthlist = []
+            with open(filename, 'r') as f:
+                line = f.readline()
+                # Continue until line is empty
+                while line:
+                    self.monthlist.append(line.rstrip())
+                    line = f.readline()
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
+
 
 class Qflist(object):
     """Diva 4D input file listing the Quality Flags to be considered for the data selection.
+
+    Example:
+    =======
+
+    Qflist = Qflist([0, 1, 2])
+
     """
-    def __init__(self, qflist):
+    def __init__(self, qflist=None):
         """
-        :param qflist: List of accepted quality flags for the osbervations
+        :param qflist: List of accepted quality flags (integers) for the observations
         :type qflist: list
         :return:
         """
         logger.info("Creating Diva 4D Qflist object")
-        self.qflist = qflist
+        if qflist is None:
+            self.qflist = []
+        else:
+            if isinstance(qflist, int):
+                logger.debug("Converting integer to list")
+                qflist = [qflist]
+            self.qflist = qflist
 
     def write_to(self, filename):
         """Write the QF list in the specified file.
@@ -272,18 +397,61 @@ class Qflist(object):
                 f.write(''.join((str(qf), '\n')))
         logger.info("Written in file {0}".format(filename))
 
+    def read_from(self, filename):
+        """Get the 'qflist' values from an existing file.
+
+        Example:
+        =======
+
+            Qflist.read_from(qflistfile)
+
+        If the 'qflist' is already defined, the use of 'read_from' will discard
+        the previous values.
+
+        :type self: object
+        :param filename: name of the file where the QF values are written.
+        :type filename: str
+        """
+        if os.path.exists(filename):
+            logger.info("Reading 'qflist' values from file {0}".format(filename))
+            # Start with empty list
+            self.qflist = []
+            with open(filename, 'r') as f:
+                line = f.readline()
+                # Continue until line is empty
+                while line:
+                    self.qflist.append(int(line.rstrip()))
+                    line = f.readline()
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
+
 
 class Varlist(object):
-    """Diva 4D input file listing the variables to be selected from the ODV file(s).
+    """Diva 4D input file listing the variables ('strings') to be selected from the ODV file(s).
+
+    The variable names should be those found in the ODV files.
+
+    Example:
+    =======
+
+        Varlist = Varlist(['Temperature', 'Salinity'])
+
     """
-    def __init__(self, varlist):
+    def __init__(self, varlist=None):
         """
         :param varlist: List of variables to be processed
         :type varlist: list
         :return:
         """
         logger.info("Creating Diva 4D Varlist object")
-        self.varlist = varlist
+        if varlist is None:
+            self.varlist = []
+        else:
+            if isinstance(varlist, str):
+                logger.debug("Converting string to list")
+                varlist = [varlist]
+            self.varlist = varlist
 
     def write_to(self, filename):
         """Write the variable list in the specified file.
@@ -296,17 +464,58 @@ class Varlist(object):
 
         logger.info("Written in file {0}".format(filename))
 
+    def read_from(self, filename):
+        """Get the list of variables from an existing file.
+
+        Example:
+        =======
+
+            Varlist.read_from(varlistfile)
+
+        If the 'varlist' is already defined, the use of 'read_from' will discard
+        the previous values.
+
+        :type self: object
+        :param filename: name of the file where the variable names are written.
+        :type filename: str
+        """
+        if os.path.exists(filename):
+            logger.info("Reading list of variables from file {0}".format(filename))
+            # Start with empty list
+            self.varlist = []
+            with open(filename, 'r') as f:
+                line = f.readline()
+                # Continue until line is empty
+                while line:
+                    self.varlist.append(line.rstrip())
+                    line = f.readline()
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
+
 
 class Yearlist(object):
     """Diva 4D input file listing the years to be processed.
+
+    Example:
+    =======
+
+        Yearlist = Yearlist(['19502000'])
+
     """
-    def __init__(self, yearlist):
+    def __init__(self, yearlist=None):
         """
         :param yearlist: List of years describing the periods to be processed
         :type yearlist: list
         """
         logger.info("Creating Diva 4D Yearlist object")
-        self.yearlist = yearlist
+        if yearlist is None:
+            self.yearlist = []
+        else:
+            if isinstance(yearlist, str):
+                logger.debug("Converting string to list")
+                yearlist = [yearlist]
+            self.yearlist = yearlist
 
     def write_to(self, filename):
         """Write the year list in the specified file.
@@ -319,10 +528,45 @@ class Yearlist(object):
 
         logger.info("Written into file {0}".format(filename))
 
+    def read_from(self, filename):
+        """Get the list of year periods from an existing file.
+
+        Example:
+        =======
+
+            Yearlist.read_from(yearlistfile)
+
+        If the 'yearlist' is already defined, the use of 'read_from' will discard
+        the previous values.
+
+        :type self: object
+        :param filename: name of the file where the variable names are written.
+        :type filename: str
+        """
+        if os.path.exists(filename):
+            logger.info("Reading list of variables from file {0}".format(filename))
+            # Start with empty list
+            self.yearlist = []
+            with open(filename, 'r') as f:
+                line = f.readline()
+                # Continue until line is empty
+                while line:
+                    self.yearlist.append(line.rstrip())
+                    line = f.readline()
+        else:
+            logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
+
 
 class Contourdepth(object):
     """Diva 4D input file listing the depth levels on which the data have to be extracted
     and the interpolation performed.
+
+    Example:
+    =======
+
+        Contourdepth = Contourdepth([200, 100., 50., 0.])
+
     """
     def __init__(self, depthlist=None):
         """
@@ -330,7 +574,18 @@ class Contourdepth(object):
         :type depthlist: list
         """
         logger.info("Creating Diva 4D Contourdepth object")
-        self.depthlist = depthlist
+        if depthlist is None:
+            self.depthlist = []
+        else:
+            if isinstance(depthlist, (int, float)):
+                logger.debug("Converting integer or float to list")
+                depthlist = [depthlist]
+            logger.debug("Ordering list of depths in decreasing order")
+            depthlist.sort(reverse=True)
+            self.depthlist = depthlist
+
+            if any(x < 0 for x in depthlist):
+                logger.warning("Depth levels should be defined as positive values")
 
     def write_to(self, filename):
         """Write the contour depth list in the specified file.
@@ -446,7 +701,7 @@ class Ncdfinfo(object):
         :type filename: str
         """
         if os.path.exists(filename):
-            logger.info("Reading depth levels from file {0}".format(filename))
+            logger.info("Reading netCDF metadata from file {0}".format(filename))
             # Start with empty list
             ncdfinfo = []
             with open(filename, 'r') as f:
@@ -455,7 +710,7 @@ class Ncdfinfo(object):
                 while line:
                     ncdfinfo.append(line.rstrip())
                     line = f.readline()
-            self.title, self.freftime, self.timeval, self.cellmethod,\
+            self.title, self.reftime, self.timeval, self.cellmethod,\
                 self.institution, self.groupemail, self.source, self.comment,\
                 self.authoremail, self.acknowledgment = ncdfinfo[1::2]
         else:
