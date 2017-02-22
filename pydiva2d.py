@@ -13,13 +13,12 @@ import netCDF4
 from matplotlib import path
 from matplotlib import patches
 
-
-logfile = ''.join(('./logs/Diva_', datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'), '.log'))
-
-def makeDivaLogger(logname, logfile):
+def divalogger(logname, logfile):
     """Create logger object to handle messages
+    :param logname: name of the logger
+    :param logfile: path to the file storing the messages
+    :type logfile: str
     """
-
     logger = logging.getLogger(logname)
     logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
@@ -38,34 +37,36 @@ def makeDivaLogger(logname, logfile):
 
     return logger
 
-logger = makeDivaLogger(__name__, logfile)
+logfile = ''.join(('./logs/Diva_', datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'), '.log'))
+logger = divalogger(__name__, logfile)
 logger.info("Logs written in file\n{0}".format(logfile))
 
 
 class DivaDirectories(object):
+    """Object storing the paths to the main Diva 2D directories: binaries, sources,
+    execution directory, ...
+    """
     def __init__(self, divamain):
         """Creation of the 'Diva Directories' object using the user inputs.
         :param divamain: Main Diva directory (path ending by diva-x.y.z)
         :type divamain: str
         :return:
         """
-        self.divamain = divamain
 
-        if os.path.isdir(self.divamain):
+        if os.path.isdir(divamain):
+            self.divamain = divamain
             logging.debug("{0} exists".format(self.divamain))
             self.divabin = os.path.join(self.divamain, 'DIVA3D/bin')
-            self.divasrc = os.path.join(self.divamain, 'DIVA3D/src/Fortan')
+            self.divasrc = os.path.join(self.divamain, 'DIVA3D/src/Fortran')
             self.diva2d = os.path.join(self.divamain, 'DIVA3D/divastripped')
             self.diva4d = os.path.join(self.divamain, 'JRA4/Climatology')
-            self.diva4dinput = os.path.join(self.divamain, 'JRA4/Climatology/input')
+
             logger.info('Diva main directory: {0}'.format(self.divamain))
             logger.info('Creating Diva directory paths')
             logger.info("Binary directory:   {0}".format(self.divabin))
             logger.info("Source directory:   {0}".format(self.divasrc))
             logger.info("Main 2D directory:  {0}".format(self.diva2d))
             logger.info("Main 4D directory:  {0}".format(self.diva4d))
-            logger.info("4D input directory: {0}".format(self.diva4dinput))
-
         else:
             logging.error("{0} is not a directory or doesn't exist".format(self.divamain))
 
