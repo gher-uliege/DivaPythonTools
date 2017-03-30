@@ -501,7 +501,7 @@ class Diva2DParameters(object):
         """
 
         print("Correlation length: {0}".format(self.cl))
-        print("icoordchange: {0}\n({1})".format(self.icoordchange))
+        print("icoordchange: {0}".format(self.icoordchange))
         print("ispec: {0}".format(self.ispec))
         print("ireg: {0}".format(self.ireg))
         print("Domain: x-axis: from {0} to {1} with {2} steps of {3}".format(self.xori, self.xend,
