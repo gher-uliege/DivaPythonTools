@@ -34,7 +34,7 @@ class Diva4DDirectories(DivaDirectories):
             logger.info('Diva 4D parameter directory: {0}'.format(self.diva4dparam))
             logger.info('Diva 4D field directory: {0}'.format(self.diva4dfields))
         else:
-            logging.error("{0} is not a directory or doesn't exist".format(self.divamain))
+            logging.error("{0} is not a directory or doesn't exist".format(divamain))
 
 
 class Diva4Dfiles(object):

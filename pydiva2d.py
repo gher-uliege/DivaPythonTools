@@ -68,7 +68,7 @@ class DivaDirectories(object):
             logger.info("Main 2D directory:  {0}".format(self.diva2d))
             logger.info("Main 4D directory:  {0}".format(self.diva4d))
         else:
-            logging.error("{0} is not a directory or doesn't exist".format(self.divamain))
+            logging.error("{0} is not a directory or doesn't exist".format(divamain))
 
 
 class Diva2Dfiles(object):
