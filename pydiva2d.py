@@ -20,13 +20,13 @@ def divalogger(logname, logfile):
     :type logfile: str
     """
     logger = logging.getLogger(logname)
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.WARNING)
     # create file handler which logs even debug messages
     fh = logging.FileHandler(logfile)
     fh.setLevel(logging.DEBUG)
     # create console handler with a higher log level
     ch = logging.StreamHandler()
-    ch.setLevel(logging.ERROR)
+    ch.setLevel(logging.WARNING)
     # create formatter and add it to the handlers
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     fh.setFormatter(formatter)
@@ -198,18 +198,23 @@ class Diva2DData(object):
 
     def add_to_plot(self, m=None, **kwargs):
         """Add the data points to the plot using a scatter plot.
-        :param map: basemap projection
-        :type map: mpl_toolkits.basemap.Basemap
+        :param m: basemap projection
+        :type m: mpl_toolkits.basemap.Basemap
         :param kwargs: options for the plot
+        :return dataplot
         """
         if m is None:
             logger.debug("No projection defined")
-            logger.debug('Adding data points to plot')
-            plt.scatter(self.x, self.y, c=self.field, **kwargs)
+            logger.debug("Adding data points to plot")
+            dataplot = plt.scatter(self.x, self.y, c=self.field, **kwargs)
         else:
             logger.debug("Applying projection to coordinates")
-            logger.debug('Adding data points to map')
-            m.scatter(self.x, self.y, c=self.field, latlon=True, **kwargs)
+            logger.info("WTF")
+            logger.debug("Adding data points to map")
+
+            dataplot = m.scatter(self.x, self.y, c=self.field, latlon=True, **kwargs)
+
+        return dataplot
 
     def add_positions_to_plot(self, **kwargs):
         """Add the data positions to the plot.
@@ -383,6 +388,7 @@ class Diva2DContours(object):
     def add_to_plot(self, m=None, **kwargs):
         """Add the contours to the plot
         :param kwargs: options for the plot
+        :return contourplot
         """
 
         if m is None:
@@ -390,16 +396,18 @@ class Diva2DContours(object):
             logger.debug('Adding contours to plot')
             for lon, lat in zip(self.x, self.y):
                 # Append first element of the array to close the contour
-                plt.plot(np.append(lon, lon[0]),
-                         np.append(lat, lat[0]),
-                         **kwargs)
+                contourplot = plt.plot(np.append(lon, lon[0]),
+                                       np.append(lat, lat[0]),
+                                       **kwargs)
         else:
             logger.debug("Applying projection to coordinates")
             logger.debug('Adding contours to map')
             for lon, lat in zip(self.x, self.y):
-                m.plot(np.append(lon, lon[0]),
-                       np.append(lat, lat[0]),
-                       latlon=True, **kwargs)
+                contourplot = m.plot(np.append(lon, lon[0]),
+                                     np.append(lat, lat[0]),
+                                     latlon=True, **kwargs)
+
+        return contourplot
 
 
 class Diva2DParameters(object):
@@ -667,41 +675,47 @@ class Diva2DResults(object):
         """Add the result to the plot
         :param field: 'result' or 'error'
         :type field: str
-        :param **kwargs: options for the plot
+        :return resultplot
+        :type resultplot: matplotlib.collections.QuadMesh
         """
 
         if m is None:
             logger.debug("No projection defined")
             if field == 'analysis':
                 logger.debug('Adding analysed field to plot')
-                plt.pcolormesh(self.x, self.y, self.analysis, **kwargs)
-                plt.colorbar()
+                resultplot = plt.pcolormesh(self.x, self.y, self.analysis, **kwargs)
+                # plt.colorbar()
             elif field == 'error':
                 logger.debug('Adding error field to plot')
-                plt.pcolormesh(self.x, self.y, self.error, **kwargs)
-                plt.colorbar()
+                resultplot = plt.pcolormesh(self.x, self.y, self.error, **kwargs)
+                # plt.colorbar()
             else:
                 logger.error("Field selected for plot does not exist")
                 logger.error("Try 'analysis' or 'error'")
+                resultplot = None
+
         else:
             m.ax = ax
             logger.debug("Applying projection to coordinates")
             xx, yy = np.meshgrid(self.x, self.y)
             if field == 'analysis':
                 logger.debug('Adding analysed field to plot')
-                pcm = m.pcolormesh(xx, yy, self.analysis, ax=m.ax, latlon=True, **kwargs)
-                plt.colorbar(pcm)
+                resultplot = m.pcolormesh(xx, yy, self.analysis, ax=m.ax, latlon=True, **kwargs)
+                # plt.colorbar(pcm)
                 # m.ax.set_xlim(xx.min(), xx.max())
                 # m.ax.set_ylim(yy.min(), yy.max())
             elif field == 'error':
                 logger.debug('Adding error field to plot')
-                pcm = m.pcolormesh(xx, yy, self.error, ax=m.ax, latlon=True, **kwargs)
-                plt.colorbar(pcm)
+                resultplot = m.pcolormesh(xx, yy, self.error, ax=m.ax, latlon=True, **kwargs)
+                # plt.colorbar(pcm)
                 # m.ax.set_xlim(xx.min(), xx.max())
                 # m.ax.set_ylim(yy.min(), yy.max())
             else:
                 logger.error("Field selected for plot does not exist")
                 logger.error("Try 'analysis' or 'error'")
+                resultplot = None
+
+        return resultplot
 
 
 class Diva2DMesh(object):
@@ -855,7 +869,7 @@ class Diva2DMesh(object):
         print("Number of interfaces: {0}".format(self.ninterfaces))
         print("Number of elements: {0}".format(self.nelements))
 
-    def add_to_plot(self, ax, m=None, **kwargs):
+    def add_to_plot(self, m=None, **kwargs):
         """Plot the finite element mesh using the line segments.
 
         Example:
@@ -874,46 +888,50 @@ class Diva2DMesh(object):
         :type ax: matplotlib.axes._subplots.AxesSubplot
         :param m: basemap
         :type m: mpl_toolkits.basemap.Basemap
+        :return meshplot
         """
         
         # Create empty lists of coordinates
         xx = []
         yy = []
-        # Read each element coordinates and add a NaN to avoid plotting lines joining 2 elements
+        # Read each element coordinates and add values that will lead to projected values
+        # that will be discarded
+        #
+        # Previous solution: we add a NaN to avoid plotting lines joining 2 elements
         for j in range(0, self.nelements):
             xx.extend((self.xnode[self.i1[j]], self.xnode[self.i2[j]],
                        self.xnode[self.i3[j]], self.xnode[self.i1[j]], np.nan))
             yy.extend((self.ynode[self.i1[j]], self.ynode[self.i2[j]],
                        self.ynode[self.i3[j]], self.ynode[self.i1[j]], np.nan))
 
-        # Convert to numpy array
-        xx = np.array(xx)
-        yy = np.array(yy)
-
         if m is None:
             logger.debug("No projection defined")
             logger.debug('Adding finite-element mesh to plot')
-            plt.plot(xx, yy, **kwargs)
+            meshplot = plt.plot(xx, yy, **kwargs)
 
             logger.debug('Setting limits to axes')
-            ax.set_xlim(self.xnode.min(), self.xnode.max())
-            ax.set_ylim(self.ynode.min(), self.ynode.max())
+            #ax.set_xlim(self.xnode.min(), self.xnode.max())
+            #ax.set_ylim(self.ynode.min(), self.ynode.max())
         else:
             logger.debug("Applying projection to coordinates")
             logger.debug('Adding finite-element mesh to map')
 
+
             # Apply projection
+            # (to avoid warnings if we did it through the plot
             xx, yy = m(xx, yy)
-            # Remove large values
-            xx[xx > 1e20] = np.nan
-            yy[yy > 1e20] = np.nan
+            # Mask large values
+            np.ma.masked_greater(xx, 1e+20, copy=True)
+            np.ma.masked_greater(yy, 1e+20, copy=True)
 
-            m.plot(xx, yy, **kwargs)
-            m.ax = ax
+            meshplot = m.plot(xx, yy, latlon=False, **kwargs)
 
+            """
             logger.debug('Setting limits to axes')
             m.ax.set_xlim(np.nanmin(xx), np.nanmax(xx))
             m.ax.set_ylim(np.nanmin(yy), np.nanmax(yy))
+            """
+        return meshplot
 
     def add_to_plot_patch(self, ax, m=None, **kwargs):
         """Plot the finite element mesh using the 'patch' function of matplotlib.
