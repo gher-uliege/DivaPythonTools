@@ -1,5 +1,8 @@
 __author__ = 'ctroupin'
-"""User interface for diva in python
+"""Module for running Diva2D, including:
+- Input file preparation
+- Figure generation
+- Map generation
 """
 
 import logging
@@ -13,6 +16,7 @@ import netCDF4
 from matplotlib import path
 from matplotlib import patches
 
+
 def divalogger(logname, logfile):
     """Create logger object to handle messages
     :param logname: name of the logger
@@ -20,7 +24,7 @@ def divalogger(logname, logfile):
     :type logfile: str
     """
     logger = logging.getLogger(logname)
-    logger.setLevel(logging.WARNING)
+    logger.setLevel(logging.DEBUG)
     # create file handler which logs even debug messages
     fh = logging.FileHandler(logfile)
     fh.setLevel(logging.DEBUG)
@@ -37,6 +41,7 @@ def divalogger(logname, logfile):
 
     return logger
 
+
 logfile = ''.join(('./logs/Diva_', datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'), '.log'))
 logger = divalogger(__name__, logfile)
 logger.info("Logs written in file\n{0}".format(logfile))
@@ -46,6 +51,7 @@ class DivaDirectories(object):
     """Object storing the paths to the main Diva 2D directories: binaries, sources,
     execution directory, ...
     """
+
     def __init__(self, divamain):
         """Creation of the 'Diva Directories' object using the user inputs.
         :param divamain: Main Diva directory (path ending by diva-x.y.z)
@@ -55,7 +61,7 @@ class DivaDirectories(object):
 
         if os.path.isdir(divamain):
             self.divamain = divamain
-            logging.debug("{0} exists".format(self.divamain))
+            logger.debug("{0} exists".format(self.divamain))
             self.divabin = os.path.join(self.divamain, 'DIVA3D/bin')
             self.divasrc = os.path.join(self.divamain, 'DIVA3D/src/Fortran')
             self.diva2d = os.path.join(self.divamain, 'DIVA3D/divastripped')
@@ -68,7 +74,7 @@ class DivaDirectories(object):
             logger.info("Main 2D directory:  {0}".format(self.diva2d))
             logger.info("Main 4D directory:  {0}".format(self.diva4d))
         else:
-            logging.error("{0} is not a directory or doesn't exist".format(divamain))
+            logger.error("{0} is not a directory or doesn't exist".format(divamain))
 
 
 class Diva2Dfiles(object):
@@ -202,6 +208,7 @@ class Diva2DData(object):
         :type m: mpl_toolkits.basemap.Basemap
         :param kwargs: options for the plot
         :return dataplot
+        :type dataplot: PathCollection
         """
         if m is None:
             logger.debug("No projection defined")
@@ -209,7 +216,6 @@ class Diva2DData(object):
             dataplot = plt.scatter(self.x, self.y, c=self.field, **kwargs)
         else:
             logger.debug("Applying projection to coordinates")
-            logger.info("WTF")
             logger.debug("Adding data points to map")
 
             dataplot = m.scatter(self.x, self.y, c=self.field, latlon=True, **kwargs)
@@ -387,8 +393,8 @@ class Diva2DContours(object):
 
     def add_to_plot(self, m=None, **kwargs):
         """Add the contours to the plot
-        :param kwargs: options for the plot
-        :return contourplot
+        :return contourplot: matplotlib.lines.Line2D
+        :type contourplot: list
         """
 
         if m is None:
@@ -556,8 +562,8 @@ class Diva2DParameters(object):
         """
         if os.path.exists(filename):
             logger.info("Reading parameters from file {0}".format(filename))
-            cl, icoord, ispec, ireg, xori, yori, dx, dy, nx,\
-                ny, valex, snr, varbak = np.loadtxt(filename, comments='#', unpack=True)
+            cl, icoord, ispec, ireg, xori, yori, dx, dy, nx, \
+            ny, valex, snr, varbak = np.loadtxt(filename, comments='#', unpack=True)
 
             self.cl = cl
             self.icoordchange = int(icoord)
@@ -636,12 +642,19 @@ class Diva2DValatxy(object):
         """
         self.x, self.y = np.loadtxt(filename, unpack=True, usecols=(0, 1))
 
-    def add_to_plot(self, **kwargs):
+    def add_to_plot(self, m=None, **kwargs):
         """Add the positions of the extra analysis points to the plot using a scatter plot.
         :param kwargs: options for the plot
         """
-        logger.debug('Adding extra analysis points to plot')
-        plt.scatter(self.x, self.y, **kwargs)
+
+        if m is None:
+            logger.debug("No projection defined")
+            logger.debug('Adding extra analysis points to plot')
+            dataplot = plt.scatter(self.x, self.y, **kwargs)
+        else:
+            logger.debug("Applying projection to coordinates")
+            logger.debug('Adding extra analysis points to plot')
+            dataplot = m.scatter(self.x, self.y, latlon=True, **kwargs)
 
 
 class Diva2DResults(object):
@@ -671,12 +684,12 @@ class Diva2DResults(object):
         except OSError:
             logger.error("File {0} does not exist".format(filename))
 
-    def add_to_plot(self, ax, m=None, field='analysis', **kwargs):
+    def add_to_plot(self, m=None, field='analysis', **kwargs):
         """Add the result to the plot
-        :param field: 'result' or 'error'
+        :param field: 'analysis' or 'error'
         :type field: str
-        :return resultplot
-        :type resultplot: matplotlib.collections.QuadMesh
+        :return resultplot: matplotlib.collections.QuadMesh
+        :type resultplot: QuadMesh
         """
 
         if m is None:
@@ -877,20 +890,17 @@ class Diva2DMesh(object):
 
             fig = plt.figure()
             ax =  ax = plt.subplot(111)
-            Mesh.add_to_plot(ax, edgecolor='b', facecolor='0.9', linewidth=0.5)
-
-        Note that an 'ax' object should exist in order to add the patches to the plot.
+            Mesh.add_to_plot(edgecolor='b', facecolor='0.9', linewidth=0.5)
 
         The method 'add_to_plot_patch' uses matplotlib 'patch' and provide additional
         plotting options but is slower than 'add_to_plot'.
-        
-        :param ax: axes
-        :type ax: matplotlib.axes._subplots.AxesSubplot
+
         :param m: basemap
         :type m: mpl_toolkits.basemap.Basemap
-        :return meshplot
+        :return meshplot: matplotlib.lines.Line2D object
+        :type meshplot: list
         """
-        
+
         # Create empty lists of coordinates
         xx = []
         yy = []
@@ -910,12 +920,11 @@ class Diva2DMesh(object):
             meshplot = plt.plot(xx, yy, **kwargs)
 
             logger.debug('Setting limits to axes')
-            #ax.set_xlim(self.xnode.min(), self.xnode.max())
-            #ax.set_ylim(self.ynode.min(), self.ynode.max())
+            # ax.set_xlim(self.xnode.min(), self.xnode.max())
+            # ax.set_ylim(self.ynode.min(), self.ynode.max())
         else:
             logger.debug("Applying projection to coordinates")
             logger.debug('Adding finite-element mesh to map')
-
 
             # Apply projection
             # (to avoid warnings if we did it through the plot
@@ -988,36 +997,37 @@ class Diva2DMesh(object):
             m.ax.set_xlim(xnode.min(), xnode.max())
             m.ax.set_ylim(ynode.min(), ynode.max())
 
-    def add_element_num(self, ax, m=None, **kwargs):
+    def add_element_num(self, m=None, **kwargs):
         """Write the element number at the center of each triangle.
-        :param ax: axes
-        :type ax: matplotlib.axes._subplots.AxesSubplot
+        :param m: basemap
+        :type m: mpl_toolkits.basemap.Basemap
 
         Example:
         =======
 
-            Mesh.add_element_num(ax, color='r', fontsize=8)
+            Mesh.add_element_num(color='r', fontsize=8)
 
         """
 
         if m is None:
             for j in range(0, self.nelements):
-                xnodemean = (1./3.) * (self.xnode[self.i1[j]] + self.xnode[self.i2[j]] + self.xnode[self.i3[j]])
-                ynodemean = (1./3.) * (self.ynode[self.i1[j]] + self.ynode[self.i2[j]] + self.ynode[self.i3[j]])
-                ax.text(xnodemean, ynodemean, str(j + 1),
+                xnodemean = (1. / 3.) * (self.xnode[self.i1[j]] + self.xnode[self.i2[j]] + self.xnode[self.i3[j]])
+                ynodemean = (1. / 3.) * (self.ynode[self.i1[j]] + self.ynode[self.i2[j]] + self.ynode[self.i3[j]])
+                plt.text(xnodemean, ynodemean, str(j + 1),
                         ha='center', va='center', **kwargs)
         else:
             xnode_proj, ynode_proj = m(self.xnode, self.ynode)
-            m.ax = ax
+            # m.ax = ax
             for j in range(0, self.nelements):
-                xnodemean = (1./3.) * (xnode_proj[self.i1[j]] + xnode_proj[self.i2[j]] + xnode_proj[self.i3[j]])
-                ynodemean = (1./3.) * (ynode_proj[self.i1[j]] + ynode_proj[self.i2[j]] + ynode_proj[self.i3[j]])
-                m.ax.text(xnodemean, ynodemean, str(j + 1),
+                xnodemean = (1. / 3.) * (xnode_proj[self.i1[j]] + xnode_proj[self.i2[j]] + xnode_proj[self.i3[j]])
+                ynodemean = (1. / 3.) * (ynode_proj[self.i1[j]] + ynode_proj[self.i2[j]] + ynode_proj[self.i3[j]])
+                plt.text(xnodemean, ynodemean, str(j + 1),
                           ha='center', va='center', **kwargs)
 
 
 def main():
     """Do something here"""
+
 
 if __name__ == "__main__":
     main()
