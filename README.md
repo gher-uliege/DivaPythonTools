@@ -4,9 +4,11 @@ A set of modules to prepare the Diva input files and plot the data, contours, fi
 
 ## Plots
 
-The figures can be generated with and without the [Basemap](https://github.com/matplotlib/basemap) module (Plot on map projections). Some examples obtained with mixed-layer depth (MLD) data are shown below.
+The figures can be generated with and without the [Basemap](https://github.com/matplotlib/basemap) module (Plot on map projections). 
 
-The complete example to generate these plots is inside the Notebooks directory.
+Some examples obtained with mixed-layer depth (MLD) data are shown below. The complete example to generate these plots is inside the Notebooks directory [(run_diva2D_MLD)](./Notebooks/run_diva2D_MLD.ipynb).
+
+The [Notebooks](./Notebooks) directory contains additional examples showing how to run 2D and 4D cases.
 
 ### Data values
 Scatter plot showing the data positions and values.
