@@ -1,3 +1,9 @@
+Notebooks/logs/
+Notebooks/figures/
+Notebooks/.ipynb_checkpoints/
 test/
 test*
 *copy
+__pycache__
+.idea
+
