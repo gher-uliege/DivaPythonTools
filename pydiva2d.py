@@ -41,8 +41,10 @@ def divalogger(logname, logfile):
 
     return logger
 
-
-logfile = ''.join(('./logs/Diva_', datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'), '.log'))
+logdir = "./logs/"
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
+logfile = ''.join((logdir, 'Diva_', datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'), '.log'))
 logger = divalogger(__name__, logfile)
 logger.info("Logs written in file\n{0}".format(logfile))
 
@@ -684,7 +686,7 @@ class Diva2DResults(object):
         except OSError:
             logger.error("File {0} does not exist".format(filename))
 
-    def add_to_plot(self, m=None, field='analysis', **kwargs):
+    def add_to_plot(self, field='analysis', m=None, **kwargs):
         """Add the result to the plot
         :param field: 'analysis' or 'error'
         :type field: str
@@ -708,7 +710,6 @@ class Diva2DResults(object):
                 resultplot = None
 
         else:
-            m.ax = ax
             logger.debug("Applying projection to coordinates")
             xx, yy = np.meshgrid(self.x, self.y)
             if field == 'analysis':
