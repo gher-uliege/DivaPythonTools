@@ -22,7 +22,7 @@ class Diva4DDirectories(DivaDirectories):
         if os.path.isdir(divamain):
             self.divamain = divamain
             DivaDirectories.__init__(self, divamain)
-            self.diva4dinput = os.path.join(self.diva4d, 'JRA4/Climatology/input')
+            self.diva4dinput = os.path.join(self.diva4d, 'input')
             self.diva4doutput = os.path.join(self.diva4d, 'output/')
             self.diva4dmesh = os.path.join(self.diva4d, 'newinput/divamesh/')
             self.diva4dparam = os.path.join(self.diva4d, 'newinput/divaparam/')
