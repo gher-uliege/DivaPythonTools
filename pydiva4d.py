@@ -21,7 +21,7 @@ class Diva4DDirectories(DivaDirectories):
             DivaDirectories.__init__(self, divamain)
             self.diva4dinput = os.path.join(self.diva4d, 'input')
             self.diva4doutput = os.path.join(self.diva4d, 'output/')
-            self.diva4doutput3d = os.path.join(self.diva4d, 'output/')
+            self.diva4doutput3d = os.path.join(self.diva4d, 'output/3Danalysis')
             self.diva4doutputfields = os.path.join(self.diva4d, 'output/3Danalysis/Fields')
             self.diva4dmesh = os.path.join(self.diva4d, 'newinput/divamesh/')
             self.diva4dparam = os.path.join(self.diva4d, 'newinput/divaparam/')
