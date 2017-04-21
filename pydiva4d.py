@@ -1,17 +1,14 @@
+from pydiva2d import *
+
 __author__ = 'ctroupin'
 """User interface for diva in python
 """
 
-import logging
-import os
-from pydiva2d import *
-import numpy as np
-import matplotlib.pyplot as plt
-import netCDF4
 
 # If we want to have a specific logger for the messages depending on Diva4D
 # Probably not necessary
 logger = divalogger(__name__, logfile)
+
 
 class Diva4DDirectories(DivaDirectories):
     """Object storing the paths to the main Diva 4D directories: input, output,
@@ -24,15 +21,18 @@ class Diva4DDirectories(DivaDirectories):
             DivaDirectories.__init__(self, divamain)
             self.diva4dinput = os.path.join(self.diva4d, 'input')
             self.diva4doutput = os.path.join(self.diva4d, 'output/')
+            self.diva4doutput3d = os.path.join(self.diva4d, 'output/')
+            self.diva4doutputfields = os.path.join(self.diva4d, 'output/3Danalysis/Fields')
             self.diva4dmesh = os.path.join(self.diva4d, 'newinput/divamesh/')
             self.diva4dparam = os.path.join(self.diva4d, 'newinput/divaparam/')
-            self.diva4dfields = os.path.join(self.diva4d, 'output/3Danalysis/Fields')
 
             logger.info('Diva 4D input directory: {0}'.format(self.diva4dinput))
             logger.info('Diva 4D output directory: {0}'.format(self.diva4doutput))
+            logger.info('Diva 4D output 3D directory: {0}'.format(self.diva4doutput3d))
+            logger.info('Diva 4D output fields directory: {0}'.format(self.diva4doutputfields))
             logger.info('Diva 4D mesh directory: {0}'.format(self.diva4dmesh))
             logger.info('Diva 4D parameter directory: {0}'.format(self.diva4dparam))
-            logger.info('Diva 4D field directory: {0}'.format(self.diva4dfields))
+
         else:
             logging.error("{0} is not a directory or doesn't exist".format(divamain))
 

@@ -1,20 +1,19 @@
-__author__ = 'ctroupin'
-"""Module for running Diva2D, including:
-- Input file preparation
-- Figure generation
-- Map generation
-"""
-
 import logging
 import os
 import linecache
 import numpy as np
 import datetime
 import matplotlib.pyplot as plt
-from mpl_toolkits.basemap import Basemap
 import netCDF4
 from matplotlib import path
 from matplotlib import patches
+
+__author__ = 'ctroupin (GHER, ULg)'
+"""Module for running Diva2D, including:
+- Input file preparation
+- Figure generation
+- Map generation
+"""
 
 
 def divalogger(logname, logfile):
@@ -41,12 +40,13 @@ def divalogger(logname, logfile):
 
     return logger
 
+
 logdir = "./logs/"
 if not os.path.exists(logdir):
     os.makedirs(logdir)
 logfile = ''.join((logdir, 'Diva_', datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S'), '.log'))
 logger = divalogger(__name__, logfile)
-logger.info("Logs written in file\n{0}".format(logfile))
+logger.info("Logs written in file: {0}".format(logfile))
 
 
 class DivaDirectories(object):
@@ -395,6 +395,8 @@ class Diva2DContours(object):
 
     def add_to_plot(self, m=None, **kwargs):
         """Add the contours to the plot
+        :param m: basemap projection
+        :type m: mpl_toolkits.basemap.Basemap
         :return contourplot: matplotlib.lines.Line2D
         :type contourplot: list
         """
@@ -564,8 +566,8 @@ class Diva2DParameters(object):
         """
         if os.path.exists(filename):
             logger.info("Reading parameters from file {0}".format(filename))
-            cl, icoord, ispec, ireg, xori, yori, dx, dy, nx, \
-            ny, valex, snr, varbak = np.loadtxt(filename, comments='#', unpack=True)
+            cl, icoord, ispec, ireg, xori, yori, dx, dy, nx,\
+                ny, valex, snr, varbak = np.loadtxt(filename, comments='#', unpack=True)
 
             self.cl = cl
             self.icoordchange = int(icoord)
@@ -646,7 +648,8 @@ class Diva2DValatxy(object):
 
     def add_to_plot(self, m=None, **kwargs):
         """Add the positions of the extra analysis points to the plot using a scatter plot.
-        :param kwargs: options for the plot
+        :param m: basemap projection
+        :type m: mpl_toolkits.basemap.Basemap
         """
 
         if m is None:
@@ -657,6 +660,8 @@ class Diva2DValatxy(object):
             logger.debug("Applying projection to coordinates")
             logger.debug('Adding extra analysis points to plot')
             dataplot = m.scatter(self.x, self.y, latlon=True, **kwargs)
+
+        return dataplot
 
 
 class Diva2DResults(object):
@@ -690,6 +695,8 @@ class Diva2DResults(object):
         """Add the result to the plot
         :param field: 'analysis' or 'error'
         :type field: str
+        :param m: basemap projection
+        :type m: mpl_toolkits.basemap.Basemap
         :return resultplot: matplotlib.collections.QuadMesh
         :type resultplot: QuadMesh
         """
@@ -1015,7 +1022,7 @@ class Diva2DMesh(object):
                 xnodemean = (1. / 3.) * (self.xnode[self.i1[j]] + self.xnode[self.i2[j]] + self.xnode[self.i3[j]])
                 ynodemean = (1. / 3.) * (self.ynode[self.i1[j]] + self.ynode[self.i2[j]] + self.ynode[self.i3[j]])
                 plt.text(xnodemean, ynodemean, str(j + 1),
-                        ha='center', va='center', **kwargs)
+                         ha='center', va='center', **kwargs)
         else:
             xnode_proj, ynode_proj = m(self.xnode, self.ynode)
             # m.ax = ax
@@ -1023,7 +1030,7 @@ class Diva2DMesh(object):
                 xnodemean = (1. / 3.) * (xnode_proj[self.i1[j]] + xnode_proj[self.i2[j]] + xnode_proj[self.i3[j]])
                 ynodemean = (1. / 3.) * (ynode_proj[self.i1[j]] + ynode_proj[self.i2[j]] + ynode_proj[self.i3[j]])
                 plt.text(xnodemean, ynodemean, str(j + 1),
-                          ha='center', va='center', **kwargs)
+                         ha='center', va='center', **kwargs)
 
 
 def main():
