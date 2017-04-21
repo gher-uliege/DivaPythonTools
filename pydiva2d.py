@@ -68,6 +68,7 @@ class DivaDirectories(object):
             self.divasrc = os.path.join(self.divamain, 'DIVA3D/src/Fortran')
             self.diva2d = os.path.join(self.divamain, 'DIVA3D/divastripped')
             self.diva4d = os.path.join(self.divamain, 'JRA4/Climatology')
+            self.divaexample = os.path.join(self.divamain, 'Example4D/')
 
             logger.info('Diva main directory: {0}'.format(self.divamain))
             logger.info('Creating Diva directory paths')
@@ -75,6 +76,7 @@ class DivaDirectories(object):
             logger.info("Source directory:   {0}".format(self.divasrc))
             logger.info("Main 2D directory:  {0}".format(self.diva2d))
             logger.info("Main 4D directory:  {0}".format(self.diva4d))
+            logger.info("Example directory:  {0}".format(self.divaexample))
         else:
             logger.error("{0} is not a directory or doesn't exist".format(divamain))
 
