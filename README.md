@@ -1,6 +1,18 @@
 # Diva Python Tools
 
-A set of modules to prepare the Diva input files and plot the data, contours, finite-element mesh and analysis field.
+A set of modules to 
+1. prepare the Diva input files
+2. run the Diva interpolation tool
+3. read the output files (analysis, finite-element mesh)
+4. plot input and output.
+
+## Modules
+
+The main modules are [pydiva2d](./pydiva2d.py) and [pydiva4d](./pydiva4D.py), which defines the classes for the 2D and 4D version of Diva, respectively.
+
+### Pydiva2d
+
+The module defines classes corresponding to the main Diva input (data, parameters, contours) and output files (analysed and error fields, finite-element mesh).
 
 ## Plots
 
