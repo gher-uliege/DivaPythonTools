@@ -699,19 +699,19 @@ class Diva2DResults(object):
                                 Exception("Dimension mismatch")
                                 logger.error("Dimension mismatch")
                         else:
-                            logger.info("Error field not defined")
+                            logger.debug("Error field not defined")
 
                     else:
                         Exception("Dimension mismatch")
                         logger.error("Dimension mismatch")
                 else:
-                    logger.error("Analysed field not defined")
+                    logger.debug("Analysed field not defined")
             else:
-                logger.error("Y vector not defined")
+                logger.debug("Y vector not defined")
         else:
-            logger.error("X vector not defined")
+            logger.debug("X vector not defined")
 
-
+    @classmethod
     def read_from(self, filename):
         """Read the analyzed field, the error field (if exists) and their coordinates
         from the netCDF file.
@@ -749,12 +749,16 @@ class Diva2DResults(object):
         # Check if analysis has been performed
         if os.path.exists(os.path.join(divadir, 'divawork/fort.84')):
             logger.info("Finished generation of analysis field")
+            # Read the analysis from the netCDF
+            Diva2DResults.read_from(os.path.join(divadir, "output/ghertonetcdf/results.nc"))
         else:
             logger.error("Analysis not performed, check log for more details")
 
         if logfile:
             with open(logfile, 'a') as f:
                 f.write(str(out).replace('\\n', '\n'))
+
+
 
     def add_to_plot(self, field='analysis', m=None, **kwargs):
         """Add the result to the plot
