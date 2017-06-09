@@ -5,6 +5,7 @@ import numpy as np
 import datetime
 import matplotlib.pyplot as plt
 import netCDF4
+import subprocess
 from matplotlib import path
 from matplotlib import patches
 
@@ -670,7 +671,48 @@ class Diva2DResults(object):
     """Class that stores the results of the analysis
     """
 
-    def __init__(self, filename):
+    def __init__(self, x=None, y=None, analysis=None, error=None):
+        """Creation of the Diva 2D 'Result' object using the user inputs.
+        :param x: x-coordinates
+        :type x: numpy array
+        :param y: y-coordinates
+        :type y: numpy array
+        :param f: analysed field (2D)
+        :type f: numpy ndarray
+        :param e: error field (2D)
+        :type e: numpy ndarray
+        """
+        logger.info("Creating Diva 2D Result object")
+        if isinstance(x, np.ndarray):
+            self.x = x
+            if isinstance(y, np.ndarray):
+                self.y = y
+                if isinstance(analysis, np.ndarray):
+                    if analysis.shape[0] == len(x) and analysis.shape[1] == len(y):
+                        logger.debug('Consistent dimensions for the analysed field')
+                        self.analysis = analysis
+                        if isinstance(error, np.ndarray):
+                            if analysis.shape == error.shape:
+                                logger.debug('Consistent dimensions for the error field')
+                                self.error = error
+                            else:
+                                Exception("Dimension mismatch")
+                                logger.error("Dimension mismatch")
+                        else:
+                            logger.info("Error field not defined")
+
+                    else:
+                        Exception("Dimension mismatch")
+                        logger.error("Dimension mismatch")
+                else:
+                    logger.error("Analysed field not defined")
+            else:
+                logger.error("Y vector not defined")
+        else:
+            logger.error("X vector not defined")
+
+
+    def read_from(self, filename):
         """Read the analyzed field, the error field (if exists) and their coordinates
         from the netCDF file.
         If the error field doesn't exist, the function return a field full of NaN's.
@@ -692,6 +734,27 @@ class Diva2DResults(object):
                     self.error = np.nan * self.analysis
         except OSError:
             logger.error("File {0} does not exist".format(filename))
+
+    def make(self, divadir):
+        """Perform the interpolation using script divacamc
+
+        :param divadir: directory where the diva scripts are located
+        :type divadir: str
+        """
+
+        calcprocess = subprocess.Popen("./divacalc", cwd=divadir,
+                                       stdout=subprocess.PIPE, shell=True)
+        out = calcprocess.stdout.read()
+
+        # Check if analysis has been performed
+        if os.path.exists(os.path.join(divadir, 'divawork/fort.84')):
+            logger.info("Finished generation of analysis field")
+        else:
+            logger.error("Analysis not performed, check log for more details")
+
+        if logfile:
+            with open(logfile, 'a') as f:
+                f.write(str(out).replace('\\n', '\n'))
 
     def add_to_plot(self, field='analysis', m=None, **kwargs):
         """Add the result to the plot
@@ -789,6 +852,28 @@ class Diva2DMesh(object):
         self.i1 = i1
         self.i2 = i2
         self.i3 = i3
+
+    def make(self, divadir):
+        """Perform the mesh generation using script divamesh
+
+        :param divadir: directory where the diva scripts are located
+        :type divadir: str
+        """
+
+        meshprocess = subprocess.Popen("./divamesh", cwd=divadir,
+                                       stdout=subprocess.PIPE, shell=True)
+        out = meshprocess.stdout.read()
+
+        # Check if mesh has been created
+        if os.path.exists(os.path.join(divadir, 'meshgenwork/fort.22')):
+            if os.path.exists(os.path.join(divadir, 'meshgenwork/fort.23')):
+                logger.info("Finished generation of the finite-element mesh")
+        else:
+            logger.error("Mesh not generated, check log for more details")
+
+        if logfile:
+            with open(logfile, 'a') as f:
+                f.write(str(out).replace('\\n', '\n'))
 
     def read_from_np(self, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
