@@ -735,14 +735,16 @@ class Diva2DResults(object):
         except OSError:
             logger.error("File {0} does not exist".format(filename))
 
-    def make(self, divadir):
+    def make(self, divamain):
         """Perform the interpolation using script divacamc
 
         :param divadir: directory where the diva scripts are located
         :type divadir: str
         """
 
-        calcprocess = subprocess.Popen("./divacalc", cwd=divadir,
+        DivaDirectories.__init__(divamain)
+        Diva2Dfiles.__init__(DivaDirectories.diva2d)
+        calcprocess = subprocess.Popen("./divacalc", cwd=DivaDirectories.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
         out = calcprocess.stdout.read()
 
@@ -857,21 +859,27 @@ class Diva2DMesh(object):
         self.i2 = i2
         self.i3 = i3
 
-    def make(self, divadir):
+    def make(self, divamain):
         """Perform the mesh generation using script divamesh
 
-        :param divadir: directory where the diva scripts are located
+        :param divadir: main Diva directory
         :type divadir: str
         """
 
-        meshprocess = subprocess.Popen("./divamesh", cwd=divadir,
+        DivaDirectories.__init__(divamain)
+        Diva2Dfiles.__init__(DivaDirectories.diva2d)
+
+        meshprocess = subprocess.Popen("./divamesh", cwd=DivaDirectories.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
         out = meshprocess.stdout.read()
 
         # Check if mesh has been created
-        if os.path.exists(os.path.join(divadir, 'meshgenwork/fort.22')):
-            if os.path.exists(os.path.join(divadir, 'meshgenwork/fort.23')):
+        meshfile =
+        if os.path.exists(Diva2Dfiles.mesh:
+            if os.path.exists(Diva2Dfiles.meshtopo):
                 logger.info("Finished generation of the finite-element mesh")
+                # Read the mesh from the created files
+                Diva2DMesh.read_from(Diva2Dfiles.mesh, Diva2Dfiles.meshtopo)
         else:
             logger.error("Mesh not generated, check log for more details")
 
@@ -879,6 +887,7 @@ class Diva2DMesh(object):
             with open(logfile, 'a') as f:
                 f.write(str(out).replace('\\n', '\n'))
 
+    @classmethod
     def read_from_np(self, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
@@ -919,6 +928,7 @@ class Diva2DMesh(object):
         self.i2 = meshelements[np.arange(2, self.nelements * 6, 6)] - 1
         self.i3 = meshelements[np.arange(4, self.nelements * 6, 6)] - 1
 
+    @classmethod
     def read_from(self, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
