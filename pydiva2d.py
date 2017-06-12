@@ -197,10 +197,6 @@ class Diva2DData(object):
             # If the values are all None
             logger.info("Coordinates, data and weights set to None")
 
-
-
-
-
     def write_to(self, filename):
         """Write the data positions and valies into the selected file .
         :param filename: name of the 'data' file
@@ -266,7 +262,6 @@ class Diva2DData(object):
         :type m: mpl_toolkits.basemap.Basemap
         :param kwargs: options for the plot
         :return dataplot
-        :type dataplot: PathCollection
         """
         if m is None:
             logger.debug("No projection defined")
@@ -453,8 +448,6 @@ class Diva2DContours(object):
         """Add the contours to the plot
         :param m: basemap projection
         :type m: mpl_toolkits.basemap.Basemap
-        :return contourplot: matplotlib.lines.Line2D
-        :type contourplot: list
         """
 
         if m is None:
@@ -462,18 +455,16 @@ class Diva2DContours(object):
             logger.debug('Adding contours to plot')
             for lon, lat in zip(self.x, self.y):
                 # Append first element of the array to close the contour
-                contourplot = plt.plot(np.append(lon, lon[0]),
-                                       np.append(lat, lat[0]),
-                                       **kwargs)
+                plt.plot(np.append(lon, lon[0]),
+                         np.append(lat, lat[0]),
+                         **kwargs)
         else:
             logger.debug("Applying projection to coordinates")
             logger.debug('Adding contours to map')
             for lon, lat in zip(self.x, self.y):
-                contourplot = m.plot(np.append(lon, lon[0]),
-                                     np.append(lat, lat[0]),
-                                     latlon=True, **kwargs)
-
-        return contourplot
+                m.plot(np.append(lon, lon[0]),
+                       np.append(lat, lat[0]),
+                       latlon=True, **kwargs)
 
 
 class Diva2DParameters(object):
@@ -730,10 +721,10 @@ class Diva2DResults(object):
         :type x: numpy array
         :param y: y-coordinates
         :type y: numpy array
-        :param f: analysed field (2D)
-        :type f: numpy ndarray
-        :param e: error field (2D)
-        :type e: numpy ndarray
+        :param analysis: analysed field (2D)
+        :type analysis: numpy ndarray
+        :param error: error field (2D)
+        :type error: numpy ndarray
         """
         logger.info("Creating Diva 2D Result object")
         if isinstance(x, np.ndarray):
@@ -768,7 +759,6 @@ class Diva2DResults(object):
                 logger.error("Dimension mismatch")
         else:
             logger.debug("Analysed field not defined")
-
 
     @classmethod
     def read_from(self, filename):
