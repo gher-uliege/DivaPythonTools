@@ -118,7 +118,7 @@ class Diva2DData(object):
     """Class to store the properties of a 2D data file
     """
 
-    def __init__(self, x=np.array(()), y=np.array(()), field=np.array(()), weight=None):
+    def __init__(self, x=None, y=None, field=None, weight=None):
         """Creation of the Diva 2D 'data' object using the user inputs.
         :param x: Data point x-coordinates
         :type x: numpy array
@@ -132,21 +132,74 @@ class Diva2DData(object):
         """
 
         logger.info("Creating Diva 2D data object")
-        if len(x):
-            if (len(x) == len(y)) & (len(x) == len(field)):
+        if x is None:
+            logger.info("X vector not defined")
+            self.x = x
+        elif isinstance(x, np.ndarray):
+            pass
+        elif isinstance(x, list):
+            x = np.array(x)
+        else:
+            logger.error("Not a valid type for x coordinates")
+            raise Exception("Not a valid type for x coordinates")
+
+        if y is None:
+            logger.info("Y vector not defined")
+            self.y = y
+        elif isinstance(y, np.ndarray):
+            pass
+        elif isinstance(y, list):
+            y = np.array(y)
+        else:
+            logger.error("Not a valid type for x coordinates")
+            raise Exception("Not a valid type for x coordinates")
+
+        if field is None:
+            logger.info("Data values not defined")
+            self.field = field
+            self.x = None
+            self.y = None
+        elif isinstance(field, np.ndarray):
+            pass
+        elif isinstance(field, list):
+            field = np.array(field)
+        else:
+            logger.error("Not a valid type for data values")
+            raise Exception("Not a valid type for x coordinates")
+
+        if (field is None) & (weight is None):
+            logger.info("Data weights not defined")
+            self.weight = weight
+            self.field = None
+            self.x = None
+            self.y = None
+        elif (weight is None) & (field is not None):
+            weight = np.array([1] * len(field))
+            logger.info("Weight set to 1 for all data points")
+        elif isinstance(weight, np.ndarray):
+            pass
+        elif isinstance(weight, list):
+            weight = np.array(weight)
+        else:
+            logger.error("Not a valid type for weight")
+            raise Exception("Not a valid type for weight")
+
+        try:
+            if (len(x) == len(y)) & (len(x) == len(field)) & (len(field) == len(weight)):
                 self.x = x
                 self.y = y
                 self.field = field
+                self.weight = weight
             else:
                 logger.error("Input vectors have not the same length")
                 raise Exception("Input vectors have not the same length")
+        except TypeError:
+            # If the values are all None
+            logger.info("Coordinates, data and weights set to None")
 
-            if weight is None:
-                self.weight = [1] * len(field)
-                logger.info("Weight set to 1 for all data points")
-            else:
-                logger.info("Setting weights to data points")
-                self.weight = weight
+
+
+
 
     def write_to(self, filename):
         """Write the data positions and valies into the selected file .
@@ -685,31 +738,37 @@ class Diva2DResults(object):
         logger.info("Creating Diva 2D Result object")
         if isinstance(x, np.ndarray):
             self.x = x
-            if isinstance(y, np.ndarray):
-                self.y = y
-                if isinstance(analysis, np.ndarray):
-                    if analysis.shape[0] == len(x) and analysis.shape[1] == len(y):
-                        logger.debug('Consistent dimensions for the analysed field')
-                        self.analysis = analysis
-                        if isinstance(error, np.ndarray):
-                            if analysis.shape == error.shape:
-                                logger.debug('Consistent dimensions for the error field')
-                                self.error = error
-                            else:
-                                Exception("Dimension mismatch")
-                                logger.error("Dimension mismatch")
-                        else:
-                            logger.debug("Error field not defined")
+        elif isinstance(x, list):
+            self.x = np.array(x)
+        else:
+            logger.debug("X vector not defined. Should be np.ndarray or list")
 
+        if isinstance(y, np.ndarray):
+            self.y = y
+        elif isinstance(x, list):
+            self.y = np.array(y)
+        else:
+            logger.debug("Y vector not defined. Should be np.ndarray or list")
+
+        if isinstance(analysis, np.ndarray):
+            if analysis.shape[0] == len(x) and analysis.shape[1] == len(y):
+                logger.debug('Consistent dimensions for the analysed field')
+                self.analysis = analysis
+                if isinstance(error, np.ndarray):
+                    if analysis.shape == error.shape:
+                        logger.debug('Consistent dimensions for the error field')
+                        self.error = error
                     else:
                         Exception("Dimension mismatch")
                         logger.error("Dimension mismatch")
                 else:
-                    logger.debug("Analysed field not defined")
+                    logger.debug("Error field not defined")
             else:
-                logger.debug("Y vector not defined")
+                Exception("Dimension mismatch")
+                logger.error("Dimension mismatch")
         else:
-            logger.debug("X vector not defined")
+            logger.debug("Analysed field not defined")
+
 
     @classmethod
     def read_from(self, filename):
@@ -862,8 +921,8 @@ class Diva2DMesh(object):
     def make(self, divamain):
         """Perform the mesh generation using script divamesh
 
-        :param divadir: main Diva directory
-        :type divadir: str
+        :param divamain: main Diva directory
+        :type divamain: str
         """
 
         DivaDirectories.__init__(divamain)
@@ -874,8 +933,7 @@ class Diva2DMesh(object):
         out = meshprocess.stdout.read()
 
         # Check if mesh has been created
-        meshfile =
-        if os.path.exists(Diva2Dfiles.mesh:
+        if os.path.exists(Diva2Dfiles.mesh):
             if os.path.exists(Diva2Dfiles.meshtopo):
                 logger.info("Finished generation of the finite-element mesh")
                 # Read the mesh from the created files
