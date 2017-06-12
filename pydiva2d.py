@@ -300,7 +300,7 @@ class Diva2DContours(object):
     """Class that stores the properties of a contour
     """
 
-    def __init__(self, x=np.array(()), y=np.array(())):
+    def __init__(self, x=None, y=None):
         """Creation of the Diva 2D 'data' object using the user inputs.
         :param x: x-coordinates of the contours
         :type x: numpy ndarray
@@ -308,13 +308,33 @@ class Diva2DContours(object):
         :type y: numpy ndarray
         """
         logger.info("Creating Diva 2D contour object")
-        if len(x):
+        if (x is None) | (y is None):
+            logger.info("Contour coordinates not defined")
+            self.x = x
+            self.y = y
+        else:
+            if isinstance(x, list):
+                x = np.array(x)
+            elif isinstance(x, np.ndarray):
+                pass
+            else:
+                logger.error("Not a valid type for x coordinates")
+                raise Exception("Not a valid type for x coordinates")
+
+            if isinstance(y, list):
+                y = np.array(y)
+            elif isinstance(y, np.ndarray):
+                pass
+            else:
+                logger.error("Not a valid type for y coordinates")
+                raise Exception("Not a valid type for y coordinates")
+
             if len(x) == len(y):
                 self.x = x
                 self.y = y
             else:
-                Exception("Input vectors have not the same length")
                 logger.error("Input vectors have not the same length")
+                Exception("Input vectors have not the same length")
 
     @property
     def get_contours_number(self):
