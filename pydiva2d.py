@@ -782,7 +782,6 @@ class Diva2DResults(object):
         else:
             logger.debug("Analysed field not defined")
 
-    @classmethod
     def read_from(self, filename):
         """Read the analyzed field, the error field (if exists) and their coordinates
         from the netCDF file.
@@ -972,35 +971,62 @@ class Diva2DMesh(object):
         self.i3 = i3
 
     @staticmethod
-    def make(divadir):
+    def make(divadir, contourfile=None, paramfile=None):
         """Perform the mesh generation using script divamesh
 
         :param divadir: main Diva directory
         :type divadir: str
+        :param contourfile: path to the file storing the contour(s)
+        :type contourfile: str
+        :param paramfile: path to the file storing the parameters
+        :type paramfile: str
         """
 
         divadirs = DivaDirectories(divadir)
         divafiles = Diva2Dfiles(divadirs.diva2d)
 
+        if paramfile is None:
+            if not os.path.exists(divafiles.parameter):
+                logger.error("No param.par file in ./input")
+                return
+        else:
+            try:
+                shutil.copy2(paramfile, divafiles.parameter)
+            except FileNotFoundError:
+                logger.error("File {0} doesn't exist".format(paramfile))
+                logger.error("Execution stopped")
+                return
+
+        if contourfile is None:
+            if not os.path.exists(divafiles.contour):
+                logger.error("No coast.cont file in ./input")
+        else:
+            try:
+                shutil.copy2(contourfile, divafiles.contour)
+            except FileNotFoundError:
+                logger.error("File {0} doesn't exist".format(contourfile))
+                logger.error("Execution stopped")
+                return
+
         meshprocess = subprocess.Popen("./divamesh", cwd=divadirs.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
         out = meshprocess.stdout.read()
+
+        if logfile:
+            with open(logfile, 'a') as f:
+                f.write(str(out).replace('\\n', '\n'))
 
         # Check if mesh has been created
         if os.path.exists(divafiles.mesh):
             if os.path.exists(divafiles.meshtopo):
                 logger.info("Finished generation of the finite-element mesh")
                 # Read the mesh from the created files
-                Diva2DMesh.read_from(divafiles.mesh, divafiles.meshtopo)
+                Diva2DMesh.read_from(filename1=divafiles.mesh,
+                                     filename2=divafiles.meshtopo)
         else:
             logger.error("Mesh not generated, check log for more details")
 
-        if logfile:
-            with open(logfile, 'a') as f:
-                f.write(str(out).replace('\\n', '\n'))
-
-    @classmethod
-    def read_from_np(cls, filename1, filename2):
+    def read_from_np(self, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
 
@@ -1018,29 +1044,35 @@ class Diva2DMesh(object):
         logger.info("Creating Diva 2D mesh object")
 
         datamesh = np.loadtxt(filename2)
-        cls.nnodes = int(datamesh[0])
-        cls.ninterfaces = int(datamesh[1])
-        cls.nelements = int(datamesh[2])
+        self.nnodes = int(datamesh[0])
+        self.ninterfaces = int(datamesh[1])
+        self.nelements = int(datamesh[2])
 
         # Load mesh nodes
-        meshnodes = np.genfromtxt(filename1, skip_footer=cls.nelements + cls.ninterfaces)
-        # meshnodes = np.fromstring(meshnodes)
+        meshnodes = np.genfromtxt(filename1, skip_footer=self.nelements + self.ninterfaces)
+        print("Length meshnodes: {0}".format(len(meshnodes)))
+        print("Type meshnodes:{0}".format(type(meshnodes)))
+        print("Shape meshnodes:{0}".format(meshnodes.shape))
+        meshnodes = meshnodes.flatten()
 
         # Load mesh elements
-        meshelements = np.genfromtxt(filename1, skip_header=cls.nnodes + cls.ninterfaces)
+        meshelements = np.genfromtxt(filename1, skip_header=self.nnodes + self.ninterfaces)
         meshelements = np.fromstring(meshelements)
         meshelements = np.int_(meshelements)
+        print(meshelements)
+
+        vvv = np.arange(1, self.nnodes * 3, 3)
+        print("Lenth indices for meshnodes: {0}".format(len(vvv)))
 
         # Extract node coordinates
-        cls.xnode = meshnodes[np.arange(1, cls.nnodes * 3, 3)]
-        cls.ynode = meshnodes[np.arange(2, cls.nnodes * 3, 3)]
+        self.xnode = meshnodes[np.arange(1, self.nnodes * 3, 3)]
+        self.ynode = meshnodes[np.arange(2, self.nnodes * 3, 3)]
 
         # Indices of the elements
-        cls.i1 = meshelements[np.arange(0, cls.nelements * 6, 6)] - 1
-        cls.i2 = meshelements[np.arange(2, cls.nelements * 6, 6)] - 1
-        cls.i3 = meshelements[np.arange(4, cls.nelements * 6, 6)] - 1
+        self.i1 = meshelements[np.arange(0, self.nelements * 6, 6)] - 1
+        self.i2 = meshelements[np.arange(2, self.nelements * 6, 6)] - 1
+        self.i3 = meshelements[np.arange(4, self.nelements * 6, 6)] - 1
 
-    @classmethod
     def read_from(self, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
