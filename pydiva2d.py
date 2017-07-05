@@ -1,12 +1,12 @@
-import logging
 import os
+import logging
 import linecache
-import numpy as np
 import datetime
-import matplotlib.pyplot as plt
 import netCDF4
 import subprocess
 import shutil
+import numpy as np
+import matplotlib.pyplot as plt
 from matplotlib import path
 from matplotlib import patches
 
@@ -803,8 +803,55 @@ class Diva2DResults(object):
         except OSError:
             logger.error("File {0} does not exist".format(filename))
 
-    @staticmethod
-    def make(divadir, datafile=None, paramfile=None, contourfile=None):
+    def add_to_plot(self, field='analysis', m=None, **kwargs):
+        """Add the result to the plot
+        :param field: 'analysis' or 'error'
+        :type field: str
+        :param m: basemap projection
+        :type m: mpl_toolkits.basemap.Basemap
+        :return resultplot: matplotlib.collections.QuadMesh
+        :type resultplot: QuadMesh
+        """
+
+        if m is None:
+            logger.debug("No projection defined")
+            if field == 'analysis':
+                logger.debug('Adding analysed field to plot')
+                resultplot = plt.pcolormesh(self.x, self.y, self.analysis, **kwargs)
+                # plt.colorbar()
+            elif field == 'error':
+                logger.debug('Adding error field to plot')
+                resultplot = plt.pcolormesh(self.x, self.y, self.error, **kwargs)
+                # plt.colorbar()
+            else:
+                logger.error("Field selected for plot does not exist")
+                logger.error("Try 'analysis' or 'error'")
+                resultplot = None
+
+        else:
+            logger.debug("Applying projection to coordinates")
+            xx, yy = np.meshgrid(self.x, self.y)
+            if field == 'analysis':
+                logger.debug('Adding analysed field to plot')
+                resultplot = m.pcolormesh(xx, yy, self.analysis, ax=m.ax, latlon=True, **kwargs)
+                # plt.colorbar(pcm)
+                # m.ax.set_xlim(xx.min(), xx.max())
+                # m.ax.set_ylim(yy.min(), yy.max())
+            elif field == 'error':
+                logger.debug('Adding error field to plot')
+                resultplot = m.pcolormesh(xx, yy, self.error, ax=m.ax, latlon=True, **kwargs)
+                # plt.colorbar(pcm)
+                # m.ax.set_xlim(xx.min(), xx.max())
+                # m.ax.set_ylim(yy.min(), yy.max())
+            else:
+                logger.error("Field selected for plot does not exist")
+                logger.error("Try 'analysis' or 'error'")
+                resultplot = None
+
+        return resultplot
+
+
+    def make(self, divadir, datafile=None, paramfile=None, contourfile=None):
         """Perform the interpolation using script divacalc
         :param divadir: main Diva directory
         :type divadir: str
@@ -866,58 +913,9 @@ class Diva2DResults(object):
         if os.path.exists(os.path.join(divadirs.diva2d, 'divawork/fort.84')):
             logger.info("Finished generation of analysis field")
             # Read the analysis from the netCDF
-            Diva2DResults().read_from(divafiles.result)
+            self.read_from(divafiles.result)
         else:
             logger.error("Analysis not performed, check log for more details")
-
-
-
-    def add_to_plot(self, field='analysis', m=None, **kwargs):
-        """Add the result to the plot
-        :param field: 'analysis' or 'error'
-        :type field: str
-        :param m: basemap projection
-        :type m: mpl_toolkits.basemap.Basemap
-        :return resultplot: matplotlib.collections.QuadMesh
-        :type resultplot: QuadMesh
-        """
-
-        if m is None:
-            logger.debug("No projection defined")
-            if field == 'analysis':
-                logger.debug('Adding analysed field to plot')
-                resultplot = plt.pcolormesh(self.x, self.y, self.analysis, **kwargs)
-                # plt.colorbar()
-            elif field == 'error':
-                logger.debug('Adding error field to plot')
-                resultplot = plt.pcolormesh(self.x, self.y, self.error, **kwargs)
-                # plt.colorbar()
-            else:
-                logger.error("Field selected for plot does not exist")
-                logger.error("Try 'analysis' or 'error'")
-                resultplot = None
-
-        else:
-            logger.debug("Applying projection to coordinates")
-            xx, yy = np.meshgrid(self.x, self.y)
-            if field == 'analysis':
-                logger.debug('Adding analysed field to plot')
-                resultplot = m.pcolormesh(xx, yy, self.analysis, ax=m.ax, latlon=True, **kwargs)
-                # plt.colorbar(pcm)
-                # m.ax.set_xlim(xx.min(), xx.max())
-                # m.ax.set_ylim(yy.min(), yy.max())
-            elif field == 'error':
-                logger.debug('Adding error field to plot')
-                resultplot = m.pcolormesh(xx, yy, self.error, ax=m.ax, latlon=True, **kwargs)
-                # plt.colorbar(pcm)
-                # m.ax.set_xlim(xx.min(), xx.max())
-                # m.ax.set_ylim(yy.min(), yy.max())
-            else:
-                logger.error("Field selected for plot does not exist")
-                logger.error("Try 'analysis' or 'error'")
-                resultplot = None
-
-        return resultplot
 
 
 class Diva2DMesh(object):
@@ -993,20 +991,13 @@ class Diva2DMesh(object):
 
         # Load mesh nodes
         meshnodes = np.genfromtxt(filename1, skip_footer=self.nelements + self.ninterfaces)
-        print("Length meshnodes: {0}".format(len(meshnodes)))
-        print("Type meshnodes:{0}".format(type(meshnodes)))
-        print("Shape meshnodes:{0}".format(meshnodes.shape))
         meshnodes = meshnodes.flatten()
 
         # Load mesh elements
         meshelements = np.genfromtxt(filename1, skip_header=self.nnodes + self.ninterfaces)
         meshelements = np.fromstring(meshelements)
         meshelements = np.int_(meshelements)
-        print(meshelements)
-
-        vvv = np.arange(1, self.nnodes * 3, 3)
-        print("Lenth indices for meshnodes: {0}".format(len(vvv)))
-
+    
         # Extract node coordinates
         self.xnode = meshnodes[np.arange(1, self.nnodes * 3, 3)]
         self.ynode = meshnodes[np.arange(2, self.nnodes * 3, 3)]
@@ -1071,8 +1062,7 @@ class Diva2DMesh(object):
         self.i2 = np.array(i2)
         self.i3 = np.array(i3)
 
-    @staticmethod
-    def make(divadir, contourfile=None, paramfile=None):
+    def make(self, divadir, contourfile=None, paramfile=None):
         """Perform the mesh generation using script divamesh
 
         :param divadir: main Diva directory
@@ -1122,8 +1112,8 @@ class Diva2DMesh(object):
             if os.path.exists(divafiles.meshtopo):
                 logger.info("Finished generation of the finite-element mesh")
                 # Read the mesh from the created files
-                Diva2DMesh().read_from_np(filename1=divafiles.mesh,
-                             filename2=divafiles.meshtopo)
+                self.read_from_np(filename1=divafiles.mesh,
+                                  filename2=divafiles.meshtopo)
         else:
             logger.error("Mesh not generated, check log for more details")
 
