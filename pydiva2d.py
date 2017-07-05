@@ -791,7 +791,6 @@ class Diva2DResults(object):
         """
 
         try:
-
             with netCDF4.Dataset(filename) as nc:
                 self.x = nc.variables['x'][:]
                 self.y = nc.variables['y'][:]
@@ -867,7 +866,7 @@ class Diva2DResults(object):
         if os.path.exists(os.path.join(divadirs.diva2d, 'divawork/fort.84')):
             logger.info("Finished generation of analysis field")
             # Read the analysis from the netCDF
-            Diva2DResults.read_from(divafiles.result)
+            Diva2DResults().read_from(divafiles.result)
         else:
             logger.error("Analysis not performed, check log for more details")
 
@@ -970,62 +969,6 @@ class Diva2DMesh(object):
         self.i2 = i2
         self.i3 = i3
 
-    @staticmethod
-    def make(divadir, contourfile=None, paramfile=None):
-        """Perform the mesh generation using script divamesh
-
-        :param divadir: main Diva directory
-        :type divadir: str
-        :param contourfile: path to the file storing the contour(s)
-        :type contourfile: str
-        :param paramfile: path to the file storing the parameters
-        :type paramfile: str
-        """
-
-        divadirs = DivaDirectories(divadir)
-        divafiles = Diva2Dfiles(divadirs.diva2d)
-
-        if paramfile is None:
-            if not os.path.exists(divafiles.parameter):
-                logger.error("No param.par file in ./input")
-                return
-        else:
-            try:
-                shutil.copy2(paramfile, divafiles.parameter)
-            except FileNotFoundError:
-                logger.error("File {0} doesn't exist".format(paramfile))
-                logger.error("Execution stopped")
-                return
-
-        if contourfile is None:
-            if not os.path.exists(divafiles.contour):
-                logger.error("No coast.cont file in ./input")
-        else:
-            try:
-                shutil.copy2(contourfile, divafiles.contour)
-            except FileNotFoundError:
-                logger.error("File {0} doesn't exist".format(contourfile))
-                logger.error("Execution stopped")
-                return
-
-        meshprocess = subprocess.Popen("./divamesh", cwd=divadirs.diva2d,
-                                       stdout=subprocess.PIPE, shell=True)
-        out = meshprocess.stdout.read()
-
-        if logfile:
-            with open(logfile, 'a') as f:
-                f.write(str(out).replace('\\n', '\n'))
-
-        # Check if mesh has been created
-        if os.path.exists(divafiles.mesh):
-            if os.path.exists(divafiles.meshtopo):
-                logger.info("Finished generation of the finite-element mesh")
-                # Read the mesh from the created files
-                Diva2DMesh.read_from(filename1=divafiles.mesh,
-                                     filename2=divafiles.meshtopo)
-        else:
-            logger.error("Mesh not generated, check log for more details")
-
     def read_from_np(self, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
@@ -1127,6 +1070,62 @@ class Diva2DMesh(object):
         self.i1 = np.array(i1)
         self.i2 = np.array(i2)
         self.i3 = np.array(i3)
+
+    @staticmethod
+    def make(divadir, contourfile=None, paramfile=None):
+        """Perform the mesh generation using script divamesh
+
+        :param divadir: main Diva directory
+        :type divadir: str
+        :param contourfile: path to the file storing the contour(s)
+        :type contourfile: str
+        :param paramfile: path to the file storing the parameters
+        :type paramfile: str
+        """
+
+        divadirs = DivaDirectories(divadir)
+        divafiles = Diva2Dfiles(divadirs.diva2d)
+
+        if paramfile is None:
+            if not os.path.exists(divafiles.parameter):
+                logger.error("No param.par file in ./input")
+                return
+        else:
+            try:
+                shutil.copy2(paramfile, divafiles.parameter)
+            except FileNotFoundError:
+                logger.error("File {0} doesn't exist".format(paramfile))
+                logger.error("Execution stopped")
+                return
+
+        if contourfile is None:
+            if not os.path.exists(divafiles.contour):
+                logger.error("No coast.cont file in ./input")
+        else:
+            try:
+                shutil.copy2(contourfile, divafiles.contour)
+            except FileNotFoundError:
+                logger.error("File {0} doesn't exist".format(contourfile))
+                logger.error("Execution stopped")
+                return
+
+        meshprocess = subprocess.Popen("./divamesh", cwd=divadirs.diva2d,
+                                       stdout=subprocess.PIPE, shell=True)
+        out = meshprocess.stdout.read()
+
+        if logfile:
+            with open(logfile, 'a') as f:
+                f.write(str(out).replace('\\n', '\n'))
+
+        # Check if mesh has been created
+        if os.path.exists(divafiles.mesh):
+            if os.path.exists(divafiles.meshtopo):
+                logger.info("Finished generation of the finite-element mesh")
+                # Read the mesh from the created files
+                Diva2DMesh().read_from_np(filename1=divafiles.mesh,
+                             filename2=divafiles.meshtopo)
+        else:
+            logger.error("Mesh not generated, check log for more details")
 
     def describe(self):
         """Summarise the mesh characteristics
