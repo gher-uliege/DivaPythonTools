@@ -6,6 +6,7 @@ import datetime
 import matplotlib.pyplot as plt
 import netCDF4
 import subprocess
+import shutil
 from matplotlib import path
 from matplotlib import patches
 
@@ -230,6 +231,7 @@ class Diva2DData(object):
         :param filename: name of the 'data' file
         :type filename: str
         """
+
         lon, lat, field, weight = [], [], [], []
 
         if os.path.exists(filename):
@@ -788,7 +790,6 @@ class Diva2DResults(object):
         :param filename: name of the 'result' file
         :type filename: str
         """
-        self.filename = filename
 
         try:
 
@@ -804,30 +805,72 @@ class Diva2DResults(object):
         except OSError:
             logger.error("File {0} does not exist".format(filename))
 
-    def make(self, divamain):
-        """Perform the interpolation using script divacamc
-
-        :param divadir: directory where the diva scripts are located
+    @staticmethod
+    def make(divadir, datafile=None, paramfile=None, contourfile=None):
+        """Perform the interpolation using script divacalc
+        :param divadir: main Diva directory
         :type divadir: str
+        :param datafile: path to the file containing the data
+        :type datafile: str
+        :param paramfile: path to the file containing the parameters
+        :type paramfile: str
+        :param contourfile: path to the file containing the contour(s)
+        :type contourfile: str
         """
 
-        DivaDirectories.__init__(divamain)
-        Diva2Dfiles.__init__(DivaDirectories.diva2d)
-        calcprocess = subprocess.Popen("./divacalc", cwd=DivaDirectories.diva2d,
+        divadirs = DivaDirectories(divamain=divadir)
+        divafiles = Diva2Dfiles(divadirs.diva2d)
+
+        if datafile is None:
+            if not os.path.exists(divafiles.data):
+                logger.error("No data.dat file in ./input")
+                return
+        else:
+            try:
+                shutil.copy2(datafile, divafiles.data)
+            except FileNotFoundError:
+                logger.error("File {0} doesn't exist".format(datafile))
+                logger.error("Execution stopped")
+                return
+
+        if paramfile is None:
+            if not os.path.exists(divafiles.parameter):
+                logger.error("No param.par file in ./input")
+                return
+        else:
+            try:
+                shutil.copy2(paramfile, divafiles.parameter)
+            except FileNotFoundError:
+                logger.error("File {0} doesn't exist".format(paramfile))
+                logger.error("Execution stopped")
+                return
+
+        if contourfile is None:
+            if not os.path.exists(divafiles.contour):
+                logger.error("No coast.cont file in ./input")
+        else:
+            try:
+                shutil.copy2(contourfile, divafiles.contour)
+            except FileNotFoundError:
+                logger.error("File {0} doesn't exist".format(contourfile))
+                logger.error("Execution stopped")
+                return
+
+        calcprocess = subprocess.Popen("./divacalc", cwd=divadirs.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
         out = calcprocess.stdout.read()
-
-        # Check if analysis has been performed
-        if os.path.exists(os.path.join(divadir, 'divawork/fort.84')):
-            logger.info("Finished generation of analysis field")
-            # Read the analysis from the netCDF
-            Diva2DResults.read_from(os.path.join(divadir, "output/ghertonetcdf/results.nc"))
-        else:
-            logger.error("Analysis not performed, check log for more details")
 
         if logfile:
             with open(logfile, 'a') as f:
                 f.write(str(out).replace('\\n', '\n'))
+
+        # Check if analysis has been performed
+        if os.path.exists(os.path.join(divadirs.diva2d, 'divawork/fort.84')):
+            logger.info("Finished generation of analysis field")
+            # Read the analysis from the netCDF
+            Diva2DResults.read_from(divafiles.result)
+        else:
+            logger.error("Analysis not performed, check log for more details")
 
 
 
@@ -928,26 +971,27 @@ class Diva2DMesh(object):
         self.i2 = i2
         self.i3 = i3
 
-    def make(self, divamain):
+    @staticmethod
+    def make(divadir):
         """Perform the mesh generation using script divamesh
 
-        :param divamain: main Diva directory
-        :type divamain: str
+        :param divadir: main Diva directory
+        :type divadir: str
         """
 
-        DivaDirectories.__init__(divamain)
-        Diva2Dfiles.__init__(DivaDirectories.diva2d)
+        divadirs = DivaDirectories(divadir)
+        divafiles = Diva2Dfiles(divadirs.diva2d)
 
-        meshprocess = subprocess.Popen("./divamesh", cwd=DivaDirectories.diva2d,
+        meshprocess = subprocess.Popen("./divamesh", cwd=divadirs.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
         out = meshprocess.stdout.read()
 
         # Check if mesh has been created
-        if os.path.exists(Diva2Dfiles.mesh):
-            if os.path.exists(Diva2Dfiles.meshtopo):
+        if os.path.exists(divafiles.mesh):
+            if os.path.exists(divafiles.meshtopo):
                 logger.info("Finished generation of the finite-element mesh")
                 # Read the mesh from the created files
-                Diva2DMesh.read_from(Diva2Dfiles.mesh, Diva2Dfiles.meshtopo)
+                Diva2DMesh.read_from(divafiles.mesh, divafiles.meshtopo)
         else:
             logger.error("Mesh not generated, check log for more details")
 
@@ -956,7 +1000,7 @@ class Diva2DMesh(object):
                 f.write(str(out).replace('\\n', '\n'))
 
     @classmethod
-    def read_from_np(self, filename1, filename2):
+    def read_from_np(cls, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
 
@@ -974,27 +1018,27 @@ class Diva2DMesh(object):
         logger.info("Creating Diva 2D mesh object")
 
         datamesh = np.loadtxt(filename2)
-        self.nnodes = int(datamesh[0])
-        self.ninterfaces = int(datamesh[1])
-        self.nelements = int(datamesh[2])
+        cls.nnodes = int(datamesh[0])
+        cls.ninterfaces = int(datamesh[1])
+        cls.nelements = int(datamesh[2])
 
         # Load mesh nodes
-        meshnodes = np.genfromtxt(filename1, skip_footer=self.nelements + self.ninterfaces)
-        meshnodes = np.fromstring(meshnodes)
+        meshnodes = np.genfromtxt(filename1, skip_footer=cls.nelements + cls.ninterfaces)
+        # meshnodes = np.fromstring(meshnodes)
 
         # Load mesh elements
-        meshelements = np.genfromtxt(filename1, skip_header=self.nnodes + self.ninterfaces)
+        meshelements = np.genfromtxt(filename1, skip_header=cls.nnodes + cls.ninterfaces)
         meshelements = np.fromstring(meshelements)
         meshelements = np.int_(meshelements)
 
         # Extract node coordinates
-        self.xnode = meshnodes[np.arange(1, self.nnodes * 3, 3)]
-        self.ynode = meshnodes[np.arange(2, self.nnodes * 3, 3)]
+        cls.xnode = meshnodes[np.arange(1, cls.nnodes * 3, 3)]
+        cls.ynode = meshnodes[np.arange(2, cls.nnodes * 3, 3)]
 
         # Indices of the elements
-        self.i1 = meshelements[np.arange(0, self.nelements * 6, 6)] - 1
-        self.i2 = meshelements[np.arange(2, self.nelements * 6, 6)] - 1
-        self.i3 = meshelements[np.arange(4, self.nelements * 6, 6)] - 1
+        cls.i1 = meshelements[np.arange(0, cls.nelements * 6, 6)] - 1
+        cls.i2 = meshelements[np.arange(2, cls.nelements * 6, 6)] - 1
+        cls.i3 = meshelements[np.arange(4, cls.nelements * 6, 6)] - 1
 
     @classmethod
     def read_from(self, filename1, filename2):
