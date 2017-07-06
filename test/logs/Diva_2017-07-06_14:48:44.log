@@ -1,0 +1,79 @@
+2017-07-06 14:48:44,524 - pydiva2d - INFO - Logs written in file: ./logs/Diva_2017-07-06_14:48:44.log
+2017-07-06 14:48:44,525 - pydiva2d - INFO - Creating Diva 2D Result object
+2017-07-06 14:48:44,525 - pydiva2d - DEBUG - Consistent dimensions for the analysed field
+2017-07-06 14:48:44,525 - pydiva2d - DEBUG - Consistent dimensions for the error field
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Creating Diva 2D Result object
+2017-07-06 14:48:44,526 - pydiva2d - DEBUG - Consistent dimensions for the analysed field
+2017-07-06 14:48:44,526 - pydiva2d - ERROR - Dimension mismatch
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Creating Diva 2D Result object
+2017-07-06 14:48:44,526 - pydiva2d - DEBUG - X vector not defined. Should be np.ndarray or list
+2017-07-06 14:48:44,526 - pydiva2d - DEBUG - Y vector not defined. Should be np.ndarray or list
+2017-07-06 14:48:44,526 - pydiva2d - DEBUG - Analysed field not defined
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Creating Diva 2D mesh object
+2017-07-06 14:48:44,526 - pydiva2d - DEBUG - /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/ exists
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Diva main directory: /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Creating Diva directory paths
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Binary directory:   /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/bin
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Source directory:   /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/src/Fortran
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Main 2D directory:  /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Main 4D directory:  /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/JRA4/Climatology
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Example directory:  /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/Example4D/
+2017-07-06 14:48:44,526 - pydiva2d - INFO - Creating Diva 2D file names and paths
+2017-07-06 14:48:44,527 - pydiva2d - INFO - Contour file:   /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/input/coast.cont
+2017-07-06 14:48:44,527 - pydiva2d - INFO - Parameter file: /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/input/param.par
+2017-07-06 14:48:44,527 - pydiva2d - INFO - Data file:      /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/input/data.dat
+2017-07-06 14:48:44,527 - pydiva2d - INFO - Valatxy file:   /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/input/valatxy.coord
+2017-07-06 14:48:44,527 - pydiva2d - INFO - Result file:    /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/output/ghertonetcdf/results.nc
+2017-07-06 14:48:44,527 - pydiva2d - INFO - Mesh file:      /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/meshgenwork/fort.22
+2017-07-06 14:48:44,527 - pydiva2d - INFO - Mesh topo file: /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/meshgenwork/fort.23
+b'//////////////////////////////////////////////////
+Mesh generation
+//////////////////////////////////////////////////
+ 
+Reading parameters
+ 
+ 
+---------------
+Mesh is created
+---------------
+ 
+'2017-07-06 14:48:44,661 - pydiva2d - INFO - Finished generation of the finite-element mesh
+2017-07-06 14:48:44,661 - pydiva2d - INFO - Creating Diva 2D mesh object
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Creating Diva 2D Result object
+2017-07-06 14:48:44,758 - pydiva2d - DEBUG - X vector not defined. Should be np.ndarray or list
+2017-07-06 14:48:44,758 - pydiva2d - DEBUG - Y vector not defined. Should be np.ndarray or list
+2017-07-06 14:48:44,758 - pydiva2d - DEBUG - Analysed field not defined
+2017-07-06 14:48:44,758 - pydiva2d - DEBUG - /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/ exists
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Diva main directory: /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Creating Diva directory paths
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Binary directory:   /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/bin
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Source directory:   /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/src/Fortran
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Main 2D directory:  /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Main 4D directory:  /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/JRA4/Climatology
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Example directory:  /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/Example4D/
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Creating Diva 2D file names and paths
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Contour file:   /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/input/coast.cont
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Parameter file: /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/input/param.par
+2017-07-06 14:48:44,758 - pydiva2d - INFO - Data file:      /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/input/data.dat
+2017-07-06 14:48:44,759 - pydiva2d - INFO - Valatxy file:   /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/input/valatxy.coord
+2017-07-06 14:48:44,759 - pydiva2d - INFO - Result file:    /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/output/ghertonetcdf/results.nc
+2017-07-06 14:48:44,759 - pydiva2d - INFO - Mesh file:      /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/meshgenwork/fort.22
+2017-07-06 14:48:44,759 - pydiva2d - INFO - Mesh topo file: /home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/DIVA3D/divastripped/meshgenwork/fort.23
+b'//////////////////////////////////////////////////
+Going to analyse a field
+                                            
+running divacalc with flag number for solver = 0
+ possible values are 0: direct skyline, 1: parallel skyline and 2: iterative sparse
+//////////////////////////////////////////////////
+ 
+ 
+--------------------
+Analysis is finished
+--------------------
+'2017-07-06 14:48:45,781 - pydiva2d - INFO - Finished generation of analysis field
+2017-07-06 14:48:45,783 - pydiva2d - INFO - No error field in the netCDF file (will return NaN's)
+2017-07-06 14:48:45,784 - pydiva2d - INFO - Creating Diva 2D Result object
+2017-07-06 14:48:45,784 - pydiva2d - DEBUG - X vector not defined. Should be np.ndarray or list
+2017-07-06 14:48:45,784 - pydiva2d - DEBUG - Y vector not defined. Should be np.ndarray or list
+2017-07-06 14:48:45,784 - pydiva2d - DEBUG - Analysed field not defined
+2017-07-06 14:48:45,784 - pydiva2d - ERROR - File ./nofile.nc does not exist
