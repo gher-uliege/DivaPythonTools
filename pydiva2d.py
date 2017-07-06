@@ -755,6 +755,7 @@ class Diva2DResults(object):
             self.x = np.array(x)
         else:
             logger.debug("X vector not defined. Should be np.ndarray or list")
+            self.x = None
 
         if isinstance(y, np.ndarray):
             self.y = y
@@ -762,6 +763,7 @@ class Diva2DResults(object):
             self.y = np.array(y)
         else:
             logger.debug("Y vector not defined. Should be np.ndarray or list")
+            self.y = None
 
         if isinstance(analysis, np.ndarray):
             if analysis.shape[0] == len(x) and analysis.shape[1] == len(y):
@@ -776,11 +778,14 @@ class Diva2DResults(object):
                         logger.error("Dimension mismatch")
                 else:
                     logger.debug("Error field not defined")
+                    self.error = None
             else:
                 Exception("Dimension mismatch")
                 logger.error("Dimension mismatch")
         else:
             logger.debug("Analysed field not defined")
+            self.analysis = None
+            self.error = None
 
     def read_from(self, filename):
         """Read the analyzed field, the error field (if exists) and their coordinates
@@ -798,7 +803,7 @@ class Diva2DResults(object):
                 try:
                     self.error = nc.variables['error_field'][:]
                 except KeyError:
-                    logger.warning("No error field in the netCDF file (will return NaN's)")
+                    logger.info("No error field in the netCDF file (will return NaN's)")
                     self.error = np.nan * self.analysis
         except OSError:
             logger.error("File {0} does not exist".format(filename))
