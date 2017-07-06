@@ -13,12 +13,18 @@ class TestMeshMethods(unittest.TestCase):
         self.divadir = "/home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/"
 
     def test_init_empty(self):
+        """
+        Instantiate an empty Mesh object
+        """
         self.assertTrue(not(self.EmptyMesh.i1))
         self.assertTrue(not(self.EmptyMesh.nelements))
         self.assertTrue(not(self.EmptyMesh.ninterfaces))
         self.assertTrue(not(self.EmptyMesh.nnodes))
 
     def test_read_file(self):
+        """
+        Instantiate Mesh object by reading existing file
+        """
         SquareMesh = pydiva2d.Diva2DMesh()
         SquareMesh.read_from(self.meshfile, self.meshtopofile)
         self.assertEqual(SquareMesh.nelements, 348)
@@ -30,6 +36,10 @@ class TestMeshMethods(unittest.TestCase):
         self.assertEqual(SquareMesh.i1[6], 43)
 
     def test_read_file_numpy(self):
+        """
+        Instantiate Mesh object by reading existing file
+        using numpy module
+        """
         SquareMesh = pydiva2d.Diva2DMesh()
         SquareMesh.read_from_np(self.meshfile, self.meshtopofile)
         self.assertEqual(SquareMesh.nelements, 348)
@@ -41,6 +51,9 @@ class TestMeshMethods(unittest.TestCase):
         self.assertEqual(SquareMesh.i1[6], 43)
 
     def test_create_mesh(self):
+        """
+        Generate Mesh from existing parameter and contour files
+        """
         Mesh2create = pydiva2d.Diva2DMesh()
         Mesh2create.make(self.divadir, self.coastfile, self.paramfile)
         self.assertEqual(Mesh2create.nnodes, 16)
