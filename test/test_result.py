@@ -15,8 +15,12 @@ class TestResultMethods(unittest.TestCase):
         self.datafile = "../data/MLD1.dat"
         self.coastfile = "../data/coast.cont"
         self.paramfile = "../data/param.par"
+        self.resultfile = "./data/resultsquare.nc"
         
     def test_init(self):
+        """
+        Instantiate Result object with pre-set values
+        """
         ResultsSimple = pydiva2d.Diva2DResults(self.xx, self.yy, self.zz, self.ee)
         np.testing.assert_array_equal(ResultsSimple.x, self.xx)
         np.testing.assert_array_equal(ResultsSimple.y, self.yy)
@@ -25,6 +29,9 @@ class TestResultMethods(unittest.TestCase):
         #self.assertIsNone(self.Results.error)
 
     def test_init_empty(self):
+        """
+        Instantiate empty Result object
+        """
         ResultEmpty = pydiva2d.Diva2DResults()
         self.assertEqual(ResultEmpty.x, None)
         self.assertEqual(ResultEmpty.y, None)
@@ -33,17 +40,33 @@ class TestResultMethods(unittest.TestCase):
 
     def test_init_dim_mismatch(self):
         ResultMismatch = pydiva2d.Diva2DResults(self.xx, self.yy, self.zz, self.eebad)
-        # Check that exception is there
+        # Check that exception is properly handled
 
     def test_read_nonexisting_file(self):
-        """Check that the object did not read from file
         """
-        ResultsNoFile = pydiva2d.Diva2DResults()
-        ResultsNoFile.read_from('./nofile.nc')
-        self.assertTrue('ResultsNoFile' in locals())
-        self.assertFalse('ResultsNoFile.x' in locals())
-        self.assertFalse('ResultsNoFile.y' in locals())
-        self.assertFalse('ResultsNoFile.analysis' in locals())
+        Check that the object did not read from file
+        """
+        results_noFile = pydiva2d.Diva2DResults()
+        results_noFile.read_from('./nofile.nc')
+        self.assertTrue('results_noFile' in locals())
+        self.assertFalse('results_noFile.x' in locals())
+        self.assertFalse('results_noFile.y' in locals())
+        self.assertFalse('results_noFile.analysis' in locals())
+
+    def test_read_existing_file(self):
+        """
+        Check if properly reads values from existing file
+        """
+        results_file = pydiva2d.Diva2DResults()
+        results_file.read_from(self.resultfile)
+        self.assertEqual(len(results_file.x), 101)
+        self.assertEqual(len(results_file.y), 101)
+        self.assertEqual(results_file.analysis.shape, (101, 101))
+        self.assertEqual(results_file.x[5], -9.)
+        self.assertEqual(results_file.y[-1], 10.)
+        self.assertEqual(results_file.analysis.mean(), 0.015413076363357843)
+        self.assertEqual(results_file.error.mean(), 0.9919163602941177)
+        self.assertEqual(results_file.error.min(), 0.7073806524276733)
 
     def test_make(self):
         """
@@ -57,12 +80,9 @@ class TestResultMethods(unittest.TestCase):
 
         self.assertEqual(results.x[10], 28.)
         self.assertEqual(results.y[20], 42.)
-        print('{0:.16f}'.format(results.analysis.data.max()))
-        print('__________')
         self.assertAlmostEqual(results.analysis.data.mean(), -70.0825347900)
         self.assertAlmostEqual(results.analysis.data.max(), -3.5384511948)
-        self.assertAlmostEqual(results.analysis.data.min(), -99.)
-
+        self.assertEqual(results.analysis.data.min(), -99.)
 
 if __name__ == '__main__':
     unittest.main()
