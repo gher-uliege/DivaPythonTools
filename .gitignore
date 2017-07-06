@@ -1,3 +1,4 @@
+logs
 *.pyc
 Notebooks/logs/
 Notebooks/figures/
