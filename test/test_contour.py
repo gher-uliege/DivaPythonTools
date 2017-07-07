@@ -58,10 +58,5 @@ class TestContourMethods(unittest.TestCase):
         self.assertEqual(len(contour.y[1]), 16)
         self.assertEqual(len(contour.x[-1]), 6)
 
-
-
 if __name__ == '__main__':
     unittest.main()
-
-
-
