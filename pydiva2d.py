@@ -663,7 +663,9 @@ class Diva2DParameters(object):
         """Plot the specified output grid for the analyzed field.
 
         If the grid is too dense, use a scale factor larger than 1.
-        The scale factor is rounded if not chosen as integer.
+        The scale factor is rounded if not chosen as an integer.
+        :param scalefactor: ratio between the plotted grid resolution and the real grid
+        :type scalefactor: int
         """
 
         if not (type(scalefactor) == 'int'):
