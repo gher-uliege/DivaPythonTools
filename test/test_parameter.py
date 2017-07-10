@@ -53,6 +53,8 @@ class TestParamMethods(unittest.TestCase):
         self.assertEqual(parameters.valex, -99)
         self.assertEqual(parameters.snr, 1.0)
         self.assertEqual(parameters.varbak, 0)
+        self.assertEqual(parameters.xend, 42.0)
+        self.assertEqual(parameters.yend, 47.5)
 
 if __name__ == '__main__':
     unittest.main()
