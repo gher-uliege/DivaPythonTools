@@ -9,7 +9,7 @@ class TestParamMethods(unittest.TestCase):
         self.cl = 1.244
         self.icoordchange = 0
         self.ispec = -11
-        self.ireg = 2,
+        self.ireg = 2
         self.xori = -10.1
         self.yori = .0001
         self.dx = 0.25
@@ -21,6 +21,7 @@ class TestParamMethods(unittest.TestCase):
         self.varbak = 1.0
         self.divadir = "/home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/"
         self.paramfile = "../data/param.par"
+        self.noparamfile = "./data/noparam.par"
 
     def test_init(self):
         """Instantiate Parameter object with pre-set values
@@ -36,10 +37,9 @@ class TestParamMethods(unittest.TestCase):
         self.assertEqual(parameters.yend, 49.950100000000006)
 
     def test_read_file(self):
-        """Instantiate Parameter object by reading exisiting file
+        """Instantiate Parameter object by reading existing file
         """
-        parameters = pydiva2d.Diva2DParameters()
-        parameters.read_from(self.paramfile)
+        parameters = pydiva2d.Diva2DParameters().read_from(self.paramfile)
         self.assertEqual(parameters.cl, 1)
         self.assertEqual(parameters.icoordchange, 2)
         self.assertEqual(parameters.ispec, 0)
@@ -55,6 +55,14 @@ class TestParamMethods(unittest.TestCase):
         self.assertEqual(parameters.varbak, 0)
         self.assertEqual(parameters.xend, 42.0)
         self.assertEqual(parameters.yend, 47.5)
+
+    def test_read_nonexisting_file(self):
+        """
+        Try instantiate Parameter object reading an non-existing file
+        """
+        self.assertRaises(FileNotFoundError,
+                          lambda: pydiva2d.Diva2DParameters().read_from(self.noparamfile))
+
 
 if __name__ == '__main__':
     unittest.main()

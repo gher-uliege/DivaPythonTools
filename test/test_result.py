@@ -16,6 +16,7 @@ class TestResultMethods(unittest.TestCase):
         self.coastfile = "../data/coast.cont"
         self.paramfile = "../data/param.par"
         self.resultfile = "./data/resultsquare.nc"
+        self.noresultfile = "./data/noresult.nc"
         
     def test_init(self):
         """
@@ -39,8 +40,14 @@ class TestResultMethods(unittest.TestCase):
         self.assertEqual(ResultEmpty.error, None)
 
     def test_init_dim_mismatch(self):
-        ResultMismatch = pydiva2d.Diva2DResults(self.xx, self.yy, self.zz, self.eebad)
-        # Check that exception is properly handled
+        """
+        Instantiate object with arrays of different length
+        """
+        self.assertRaises(Exception,
+                          lambda: pydiva2d.Diva2DResults(self.xx, self.yy, self.zz, self.eebad))
+
+        self.assertRaises(Exception,
+                          lambda: pydiva2d.Diva2DResults(self.xx, self.xx, self.zz, self.eebad))
 
     def test_read_nonexisting_file(self):
         """
@@ -57,26 +64,38 @@ class TestResultMethods(unittest.TestCase):
         """
         Check if properly reads values from existing file
         """
-        results_file = pydiva2d.Diva2DResults()
-        results_file.read_from(self.resultfile)
-        self.assertEqual(len(results_file.x), 101)
-        self.assertEqual(len(results_file.y), 101)
-        self.assertEqual(results_file.analysis.shape, (101, 101))
-        self.assertEqual(results_file.x[5], -9.)
-        self.assertEqual(results_file.y[-1], 10.)
-        self.assertEqual(results_file.analysis.mean(), 0.015413076363357843)
-        self.assertEqual(results_file.error.mean(), 0.9919163602941177)
-        self.assertEqual(results_file.error.min(), 0.7073806524276733)
+        results = pydiva2d.Diva2DResults().read_from(self.resultfile)
+        self.assertEqual(len(results.x), 101)
+        self.assertEqual(len(results.y), 101)
+        self.assertEqual(results.x[5], -9.)
+        self.assertEqual(results.y[-1], 10.)
+        self.assertEqual(results.analysis.mean(), 0.015413076363357843)
+        self.assertEqual(results.error.mean(), 0.9919163602941177)
+        self.assertEqual(results.error.min(), 0.7073806524276733)
+        self.assertEqual(results.analysis.shape, (101, 101))
+
+    def test_read_nonexisting_file(self):
+        """
+        Try instantiate Contour object reading an non-existing file
+        """
+        self.assertRaises(FileNotFoundError,
+                          lambda: pydiva2d.Diva2DResults().read_from(self.noresultfile))
 
     def test_make(self):
         """
         Check the results of the divacalc execution with selected files
         """
+
+        # Create mesh prior to analysis
         pydiva2d.Diva2DMesh().make(self.divadir, self.coastfile, self.paramfile)
-        results = pydiva2d.Diva2DResults()
-        results.make(self.divadir, datafile=self.datafile,
-                     paramfile=self.paramfile,
-                     contourfile=self.coastfile)
+
+        results = pydiva2d.Diva2DResults().make(self.divadir, datafile=self.datafile,
+                                                paramfile=self.paramfile,
+                                                contourfile=self.coastfile)
+
+        #results.make(self.divadir, datafile=self.datafile,
+        #             paramfile=self.paramfile,
+        #             contourfile=self.coastfile)
 
         self.assertEqual(results.x[10], 28.)
         self.assertEqual(results.y[20], 42.)
