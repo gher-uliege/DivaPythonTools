@@ -427,6 +427,8 @@ class Diva2DContours(object):
             self.x = np.array(lon)
             self.y = np.array(lat)
 
+            return self
+
         else:
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
@@ -462,6 +464,9 @@ class Diva2DContours(object):
                     lat.append(yy)
             self.x = np.array(lon)
             self.y = np.array(lat)
+
+            return self
+
         else:
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
@@ -627,7 +632,8 @@ class Diva2DParameters(object):
             f.write(paramstring)
             logger.info("Written parameters into file {0}".format(filename))
 
-    def read_from(self, filename):
+    @classmethod
+    def read_from(cls, filename):
         """Read the information contained in a DIVA parameter file
         and extract the analysis parameters
         :param filename: name of the 'parameter' file
@@ -638,23 +644,25 @@ class Diva2DParameters(object):
             cl, icoord, ispec, ireg, xori, yori, dx, dy, nx,\
                 ny, valex, snr, varbak = np.loadtxt(filename, comments='#', unpack=True)
 
-            self.cl = cl
-            self.icoordchange = int(icoord)
-            self.ispec = int(ispec)
-            self.ireg = int(ireg)
-            self.xori = xori
-            self.yori = yori
-            self.dx = dx
-            self.dy = dy
-            self.nx = int(nx)
-            self.ny = int(ny)
-            self.valex = valex
-            self.snr = snr
-            self.varbak = varbak
+            cls.cl = cl
+            cls.icoordchange = int(icoord)
+            cls.ispec = int(ispec)
+            cls.ireg = int(ireg)
+            cls.xori = xori
+            cls.yori = yori
+            cls.dx = dx
+            cls.dy = dy
+            cls.nx = int(nx)
+            cls.ny = int(ny)
+            cls.valex = valex
+            cls.snr = snr
+            cls.varbak = varbak
 
             # Compute domain limits for later use
-            self.xend = self.xori + (self.nx - 1) * self.dx
-            self.yend = self.yori + (self.ny - 1) * self.dy
+            cls.xend = cls.xori + (cls.nx - 1) * cls.dx
+            cls.yend = cls.yori + (cls.ny - 1) * cls.dy
+
+            return cls
         else:
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
@@ -776,20 +784,21 @@ class Diva2DResults(object):
                         logger.debug('Consistent dimensions for the error field')
                         self.error = error
                     else:
-                        Exception("Dimension mismatch")
+                        raise Exception("Dimension mismatch")
                         logger.error("Dimension mismatch")
                 else:
                     logger.debug("Error field not defined")
                     self.error = None
             else:
-                Exception("Dimension mismatch")
+                raise Exception("Dimension mismatch")
                 logger.error("Dimension mismatch")
         else:
             logger.debug("Analysed field not defined")
             self.analysis = None
             self.error = None
 
-    def read_from(self, filename):
+    @classmethod
+    def read_from(cls, filename):
         """Read the analyzed field, the error field (if exists) and their coordinates
         from the netCDF file.
         If the error field doesn't exist, the function return a field full of NaN's.
@@ -799,16 +808,20 @@ class Diva2DResults(object):
 
         try:
             with netCDF4.Dataset(filename) as nc:
-                self.x = nc.variables['x'][:]
-                self.y = nc.variables['y'][:]
-                self.analysis = nc.variables['analyzed_field'][:]
+                cls.x = nc.variables['x'][:]
+                cls.y = nc.variables['y'][:]
+                cls.analysis = nc.variables['analyzed_field'][:]
                 try:
-                    self.error = nc.variables['error_field'][:]
+                    cls.error = nc.variables['error_field'][:]
                 except KeyError:
                     logger.info("No error field in the netCDF file (will return NaN's)")
-                    self.error = np.nan * self.analysis
+                    cls.error = np.nan * cls.analysis
+
+            return cls
+
         except OSError:
             logger.error("File {0} does not exist".format(filename))
+            raise FileNotFoundError('File does not exist')
 
     def add_to_plot(self, field='analysis', m=None, **kwargs):
         """Add the result to the plot
@@ -857,8 +870,8 @@ class Diva2DResults(object):
 
         return resultplot
 
-
-    def make(self, divadir, datafile=None, paramfile=None, contourfile=None):
+    @classmethod
+    def make(cls, divadir, datafile=None, paramfile=None, contourfile=None):
         """Perform the interpolation using script divacalc
         :param divadir: main Diva directory
         :type divadir: str
@@ -920,7 +933,8 @@ class Diva2DResults(object):
         if os.path.exists(os.path.join(divadirs.diva2d, 'divawork/fort.84')):
             logger.info("Finished generation of analysis field")
             # Read the analysis from the netCDF
-            self.read_from(divafiles.result)
+            cls.read_from(divafiles.result)
+            return cls
         else:
             logger.error("Analysis not performed, check log for more details")
 
@@ -974,7 +988,8 @@ class Diva2DMesh(object):
         self.i2 = i2
         self.i3 = i3
 
-    def read_from_np(self, filename1, filename2):
+    @classmethod
+    def read_from_np(cls, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
 
@@ -989,32 +1004,48 @@ class Diva2DMesh(object):
         :param filename2: name of the 'meshtopo' file (topology)
         :type filename2: str
         """
-        logger.info("Creating Diva 2D mesh object")
+        if os.path.exists(filename1) and os.path.exists(filename2):
+            logger.info("Reading mesh from files {0} and {1}".format(filename1, filename2))
 
-        datamesh = np.loadtxt(filename2)
-        self.nnodes = int(datamesh[0])
-        self.ninterfaces = int(datamesh[1])
-        self.nelements = int(datamesh[2])
+            datamesh = np.loadtxt(filename2)
+            cls.nnodes = int(datamesh[0])
+            cls.ninterfaces = int(datamesh[1])
+            cls.nelements = int(datamesh[2])
 
-        # Load mesh nodes
-        meshnodes = np.genfromtxt(filename1, skip_footer=self.nelements + self.ninterfaces)
-        meshnodes = meshnodes.flatten()
+            # Load mesh nodes
+            meshnodes = np.genfromtxt(filename1, skip_footer=cls.nelements + cls.ninterfaces)
+            meshnodes = meshnodes.flatten()
 
-        # Load mesh elements
-        meshelements = np.genfromtxt(filename1, skip_header=self.nnodes + self.ninterfaces)
-        meshelements = np.fromstring(meshelements)
-        meshelements = np.int_(meshelements)
-    
-        # Extract node coordinates
-        self.xnode = meshnodes[np.arange(1, self.nnodes * 3, 3)]
-        self.ynode = meshnodes[np.arange(2, self.nnodes * 3, 3)]
+            # Load mesh elements
+            meshelements = np.genfromtxt(filename1, skip_header=cls.nnodes + cls.ninterfaces)
+            meshelements = np.fromstring(meshelements)
+            meshelements = np.int_(meshelements)
 
-        # Indices of the elements
-        self.i1 = meshelements[np.arange(0, self.nelements * 6, 6)] - 1
-        self.i2 = meshelements[np.arange(2, self.nelements * 6, 6)] - 1
-        self.i3 = meshelements[np.arange(4, self.nelements * 6, 6)] - 1
+            # Extract node coordinates
+            cls.xnode = meshnodes[np.arange(1, cls.nnodes * 3, 3)]
+            cls.ynode = meshnodes[np.arange(2, cls.nnodes * 3, 3)]
 
-    def read_from(self, filename1, filename2):
+            # Indices of the elements
+            cls.i1 = meshelements[np.arange(0, cls.nelements * 6, 6)] - 1
+            cls.i2 = meshelements[np.arange(2, cls.nelements * 6, 6)] - 1
+            cls.i3 = meshelements[np.arange(4, cls.nelements * 6, 6)] - 1
+
+            return cls
+
+        elif os.path.exists(filename1):
+            logger.error("Mesh topography file {0} does not exist".format(filename2))
+            raise FileNotFoundError('File does not exist')
+
+        elif os.path.exists(filename2):
+            logger.error("Mesh file {0} does not exist".format(filename1))
+            raise FileNotFoundError('File does not exist')
+
+        else:
+            logger.error("Mesh files {0} and {1} don't exist".format(filename1, filename2))
+            raise FileNotFoundError('File does not exist')
+
+    @classmethod
+    def read_from(cls, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
 
@@ -1030,46 +1061,64 @@ class Diva2DMesh(object):
         :param filename2: name of the 'meshtopo' file (topology)
         :type filename2: str
         """
-        # Read mesh topology
-        with open(filename2) as f:
-            self.nnodes = int(f.readline().rstrip())
-            self.ninterfaces = int(f.readline().rstrip())
-            self.nelements = int(f.readline().rstrip())
 
-        # Initialise line index
-        nlines = 0
-        # and lists
-        xnode = []
-        ynode = []
-        interfaces = []
-        i1, i2, i3 = [], [], []
+        if os.path.exists(filename1) and os.path.exists(filename2):
+            logger.info("Reading mesh from files {0} and {1}".format(filename1, filename2))
+            # Read mesh topology
+            with open(filename2) as f:
+                cls.nnodes = int(f.readline().rstrip())
+                cls.ninterfaces = int(f.readline().rstrip())
+                cls.nelements = int(f.readline().rstrip())
 
-        with open(filename1, 'r') as f:
-            # Read the node coordinates
-            while nlines < self.nnodes:
-                llines = f.readline().rsplit()
-                xnode.append(float(llines[1]))
-                ynode.append(float(llines[2]))
-                nlines += 1
-            # Read the interfaces
-            while nlines < self.nnodes + self.ninterfaces:
-                interfaces.append(int(f.readline().rsplit()[0]))
-                nlines += 1
-            # Read the elements
-            while nlines < self.nnodes + self.ninterfaces + self.nelements:
-                llines = f.readline().rsplit()
-                i1.append(int(llines[0]) - 1)
-                i2.append(int(llines[2]) - 1)
-                i3.append(int(llines[4]) - 1)
-                nlines += 1
+            # Initialise line index
+            nlines = 0
+            # and lists
+            xnode = []
+            ynode = []
+            interfaces = []
+            i1, i2, i3 = [], [], []
 
-        self.xnode = np.array(xnode)
-        self.ynode = np.array(ynode)
-        self.i1 = np.array(i1)
-        self.i2 = np.array(i2)
-        self.i3 = np.array(i3)
+            with open(filename1, 'r') as f:
+                # Read the node coordinates
+                while nlines < cls.nnodes:
+                    llines = f.readline().rsplit()
+                    xnode.append(float(llines[1]))
+                    ynode.append(float(llines[2]))
+                    nlines += 1
+                # Read the interfaces
+                while nlines < cls.nnodes + cls.ninterfaces:
+                    interfaces.append(int(f.readline().rsplit()[0]))
+                    nlines += 1
+                # Read the elements
+                while nlines < cls.nnodes + cls.ninterfaces + cls.nelements:
+                    llines = f.readline().rsplit()
+                    i1.append(int(llines[0]) - 1)
+                    i2.append(int(llines[2]) - 1)
+                    i3.append(int(llines[4]) - 1)
+                    nlines += 1
 
-    def make(self, divadir, contourfile=None, paramfile=None):
+            cls.xnode = np.array(xnode)
+            cls.ynode = np.array(ynode)
+            cls.i1 = np.array(i1)
+            cls.i2 = np.array(i2)
+            cls.i3 = np.array(i3)
+
+            return cls
+
+        elif os.path.exists(filename1):
+            logger.error("Mesh topography file {0} does not exist".format(filename2))
+            raise FileNotFoundError('File does not exist')
+
+        elif os.path.exists(filename2):
+            logger.error("Mesh file {0} does not exist".format(filename1))
+            raise FileNotFoundError('File does not exist')
+
+        else:
+            logger.error("Mesh files {0} and {1} don't exist".format(filename1, filename2))
+            raise FileNotFoundError('File does not exist')
+
+    @classmethod
+    def make(cls, divadir, contourfile=None, paramfile=None):
         """Perform the mesh generation using script divamesh
 
         :param divadir: main Diva directory
@@ -1119,10 +1168,13 @@ class Diva2DMesh(object):
             if os.path.exists(divafiles.meshtopo):
                 logger.info("Finished generation of the finite-element mesh")
                 # Read the mesh from the created files
-                self.read_from_np(filename1=divafiles.mesh,
-                                  filename2=divafiles.meshtopo)
+
+                cls.read_from(filename1=divafiles.mesh,
+                              filename2=divafiles.meshtopo)
         else:
             logger.error("Mesh not generated, check log for more details")
+
+        return cls
 
     def describe(self):
         """Summarise the mesh characteristics
@@ -1176,11 +1228,12 @@ class Diva2DMesh(object):
             logger.debug('Adding finite-element mesh to map')
 
             # Apply projection
-            # (to avoid warnings if we did it through the plot
+            # (to avoid warnings if we did it through the plot)
             xx, yy = m(xx, yy)
+
             # Mask large values
-            np.ma.masked_greater(xx, 1e+20, copy=True)
-            np.ma.masked_greater(yy, 1e+20, copy=True)
+            xx = np.ma.masked_greater(xx, 1e+10, copy=True)
+            yy = np.ma.masked_greater(yy, 1e+10, copy=True)
 
             meshplot = m.plot(xx, yy, latlon=False, **kwargs)
 
