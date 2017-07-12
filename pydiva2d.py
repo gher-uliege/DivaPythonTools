@@ -209,8 +209,7 @@ class Diva2DData(object):
                 f.write("%s %s %s %s\n" % (xx, yy, zz, ww))
         logger.info("Written data into file {0}".format(filename))
 
-    @classmethod
-    def read_from_slow(cls, filename):
+    def read_from_slow(self, filename):
         """Read the information contained in a DIVA data file
         lon, lat, field, (weight).
 
@@ -219,13 +218,12 @@ class Diva2DData(object):
         :param filename: Name of the 'data' file
         :type filename: str
         """
-        cls.x, cls.y, cls.field = np.loadtxt(filename, unpack=True, usecols=(0, 1, 2))
+        self.x, self.y, self.field = np.loadtxt(filename, unpack=True, usecols=(0, 1, 2))
         # Not sure the function easily deals with data files with different number of columns.
         # Maybe not necessary to deal with that situation.
-        return cls
+        return self
 
-    @classmethod
-    def read_from(cls, filename):
+    def read_from(self, filename):
         """Read the information contained in a DIVA data file
         lon, lat, field, (weight).
 
@@ -253,11 +251,11 @@ class Diva2DData(object):
                     line = f.readline()
                     ncols = len(line.split())
 
-            cls.x = np.array(lon)
-            cls.y = np.array(lat)
-            cls.field = np.array(field)
-            cls.weight = np.array(weight)
-            return cls
+            self.x = np.array(lon)
+            self.y = np.array(lat)
+            self.field = np.array(field)
+            self.weight = np.array(weight)
+            return self
         else:
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
@@ -636,8 +634,7 @@ class Diva2DParameters(object):
             f.write(paramstring)
             logger.info("Written parameters into file {0}".format(filename))
 
-    @classmethod
-    def read_from(cls, filename):
+    def read_from(self, filename):
         """Read the information contained in a DIVA parameter file
         and extract the analysis parameters
         :param filename: name of the 'parameter' file
@@ -648,25 +645,25 @@ class Diva2DParameters(object):
             cl, icoord, ispec, ireg, xori, yori, dx, dy, nx,\
                 ny, valex, snr, varbak = np.loadtxt(filename, comments='#', unpack=True)
 
-            cls.cl = cl
-            cls.icoordchange = int(icoord)
-            cls.ispec = int(ispec)
-            cls.ireg = int(ireg)
-            cls.xori = xori
-            cls.yori = yori
-            cls.dx = dx
-            cls.dy = dy
-            cls.nx = int(nx)
-            cls.ny = int(ny)
-            cls.valex = valex
-            cls.snr = snr
-            cls.varbak = varbak
+            self.cl = cl
+            self.icoordchange = int(icoord)
+            self.ispec = int(ispec)
+            self.ireg = int(ireg)
+            self.xori = xori
+            self.yori = yori
+            self.dx = dx
+            self.dy = dy
+            self.nx = int(nx)
+            self.ny = int(ny)
+            self.valex = valex
+            self.snr = snr
+            self.varbak = varbak
 
             # Compute domain limits for later use
-            cls.xend = cls.xori + (cls.nx - 1) * cls.dx
-            cls.yend = cls.yori + (cls.ny - 1) * cls.dy
+            self.xend = self.xori + (self.nx - 1) * self.dx
+            self.yend = self.yori + (self.ny - 1) * self.dy
 
-            return cls
+            return self
         else:
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
@@ -788,14 +785,14 @@ class Diva2DResults(object):
                         logger.debug('Consistent dimensions for the error field')
                         self.error = error
                     else:
-                        raise Exception("Dimension mismatch")
                         logger.error("Dimension mismatch")
+                        raise Exception("Dimension mismatch")
                 else:
                     logger.debug("Error field not defined")
                     self.error = None
             else:
-                raise Exception("Dimension mismatch")
                 logger.error("Dimension mismatch")
+                raise Exception("Dimension mismatch")
         else:
             logger.debug("Analysed field not defined")
             self.analysis = None
