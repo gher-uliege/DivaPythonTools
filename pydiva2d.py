@@ -209,7 +209,8 @@ class Diva2DData(object):
                 f.write("%s %s %s %s\n" % (xx, yy, zz, ww))
         logger.info("Written data into file {0}".format(filename))
 
-    def read_from_slow(self, filename):
+    @classmethod
+    def read_from_slow(cls, filename):
         """Read the information contained in a DIVA data file
         lon, lat, field, (weight).
 
@@ -218,11 +219,13 @@ class Diva2DData(object):
         :param filename: Name of the 'data' file
         :type filename: str
         """
-        self.x, self.y, self.field = np.loadtxt(filename, unpack=True, usecols=(0, 1, 2))
+        cls.x, cls.y, cls.field = np.loadtxt(filename, unpack=True, usecols=(0, 1, 2))
         # Not sure the function easily deals with data files with different number of columns.
         # Maybe not necessary to deal with that situation.
+        return cls
 
-    def read_from(self, filename):
+    @classmethod
+    def read_from(cls, filename):
         """Read the information contained in a DIVA data file
         lon, lat, field, (weight).
 
@@ -250,10 +253,11 @@ class Diva2DData(object):
                     line = f.readline()
                     ncols = len(line.split())
 
-            self.x = np.array(lon)
-            self.y = np.array(lat)
-            self.field = np.array(field)
-            self.weight = np.array(weight)
+            cls.x = np.array(lon)
+            cls.y = np.array(lat)
+            cls.field = np.array(field)
+            cls.weight = np.array(weight)
+            return cls
         else:
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
@@ -797,8 +801,7 @@ class Diva2DResults(object):
             self.analysis = None
             self.error = None
 
-    @classmethod
-    def read_from(cls, filename):
+    def read_from(self, filename):
         """Read the analyzed field, the error field (if exists) and their coordinates
         from the netCDF file.
         If the error field doesn't exist, the function return a field full of NaN's.
@@ -808,16 +811,16 @@ class Diva2DResults(object):
 
         try:
             with netCDF4.Dataset(filename) as nc:
-                cls.x = nc.variables['x'][:]
-                cls.y = nc.variables['y'][:]
-                cls.analysis = nc.variables['analyzed_field'][:]
+                self.x = nc.variables['x'][:]
+                self.y = nc.variables['y'][:]
+                self.analysis = nc.variables['analyzed_field'][:]
                 try:
-                    cls.error = nc.variables['error_field'][:]
+                    self.error = nc.variables['error_field'][:]
                 except KeyError:
                     logger.info("No error field in the netCDF file (will return NaN's)")
-                    cls.error = np.nan * cls.analysis
+                    self.error = np.nan * self.analysis
 
-            return cls
+            return self
 
         except OSError:
             logger.error("File {0} does not exist".format(filename))
@@ -870,8 +873,7 @@ class Diva2DResults(object):
 
         return resultplot
 
-    @classmethod
-    def make(cls, divadir, datafile=None, paramfile=None, contourfile=None):
+    def make(self, divadir, datafile=None, paramfile=None, contourfile=None):
         """Perform the interpolation using script divacalc
         :param divadir: main Diva directory
         :type divadir: str
@@ -933,8 +935,8 @@ class Diva2DResults(object):
         if os.path.exists(os.path.join(divadirs.diva2d, 'divawork/fort.84')):
             logger.info("Finished generation of analysis field")
             # Read the analysis from the netCDF
-            cls.read_from(divafiles.result)
-            return cls
+            self.read_from(divafiles.result)
+            return self
         else:
             logger.error("Analysis not performed, check log for more details")
 
@@ -988,8 +990,7 @@ class Diva2DMesh(object):
         self.i2 = i2
         self.i3 = i3
 
-    @classmethod
-    def read_from_np(cls, filename1, filename2):
+    def read_from_np(self, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
 
@@ -1008,29 +1009,29 @@ class Diva2DMesh(object):
             logger.info("Reading mesh from files {0} and {1}".format(filename1, filename2))
 
             datamesh = np.loadtxt(filename2)
-            cls.nnodes = int(datamesh[0])
-            cls.ninterfaces = int(datamesh[1])
-            cls.nelements = int(datamesh[2])
+            self.nnodes = int(datamesh[0])
+            self.ninterfaces = int(datamesh[1])
+            self.nelements = int(datamesh[2])
 
             # Load mesh nodes
-            meshnodes = np.genfromtxt(filename1, skip_footer=cls.nelements + cls.ninterfaces)
+            meshnodes = np.genfromtxt(filename1, skip_footer=self.nelements + self.ninterfaces)
             meshnodes = meshnodes.flatten()
 
             # Load mesh elements
-            meshelements = np.genfromtxt(filename1, skip_header=cls.nnodes + cls.ninterfaces)
+            meshelements = np.genfromtxt(filename1, skip_header=self.nnodes + self.ninterfaces)
             meshelements = np.fromstring(meshelements)
             meshelements = np.int_(meshelements)
 
             # Extract node coordinates
-            cls.xnode = meshnodes[np.arange(1, cls.nnodes * 3, 3)]
-            cls.ynode = meshnodes[np.arange(2, cls.nnodes * 3, 3)]
+            self.xnode = meshnodes[np.arange(1, self.nnodes * 3, 3)]
+            self.ynode = meshnodes[np.arange(2, self.nnodes * 3, 3)]
 
             # Indices of the elements
-            cls.i1 = meshelements[np.arange(0, cls.nelements * 6, 6)] - 1
-            cls.i2 = meshelements[np.arange(2, cls.nelements * 6, 6)] - 1
-            cls.i3 = meshelements[np.arange(4, cls.nelements * 6, 6)] - 1
+            self.i1 = meshelements[np.arange(0, self.nelements * 6, 6)] - 1
+            self.i2 = meshelements[np.arange(2, self.nelements * 6, 6)] - 1
+            self.i3 = meshelements[np.arange(4, self.nelements * 6, 6)] - 1
 
-            return cls
+            return self
 
         elif os.path.exists(filename1):
             logger.error("Mesh topography file {0} does not exist".format(filename2))
@@ -1044,8 +1045,7 @@ class Diva2DMesh(object):
             logger.error("Mesh files {0} and {1} don't exist".format(filename1, filename2))
             raise FileNotFoundError('File does not exist')
 
-    @classmethod
-    def read_from(cls, filename1, filename2):
+    def read_from(self, filename1, filename2):
         """Initialise the mesh object by reading the coordinates and the topology
         from the specified files.
 
@@ -1066,9 +1066,9 @@ class Diva2DMesh(object):
             logger.info("Reading mesh from files {0} and {1}".format(filename1, filename2))
             # Read mesh topology
             with open(filename2) as f:
-                cls.nnodes = int(f.readline().rstrip())
-                cls.ninterfaces = int(f.readline().rstrip())
-                cls.nelements = int(f.readline().rstrip())
+                self.nnodes = int(f.readline().rstrip())
+                self.ninterfaces = int(f.readline().rstrip())
+                self.nelements = int(f.readline().rstrip())
 
             # Initialise line index
             nlines = 0
@@ -1080,30 +1080,30 @@ class Diva2DMesh(object):
 
             with open(filename1, 'r') as f:
                 # Read the node coordinates
-                while nlines < cls.nnodes:
+                while nlines < self.nnodes:
                     llines = f.readline().rsplit()
                     xnode.append(float(llines[1]))
                     ynode.append(float(llines[2]))
                     nlines += 1
                 # Read the interfaces
-                while nlines < cls.nnodes + cls.ninterfaces:
+                while nlines < self.nnodes + self.ninterfaces:
                     interfaces.append(int(f.readline().rsplit()[0]))
                     nlines += 1
                 # Read the elements
-                while nlines < cls.nnodes + cls.ninterfaces + cls.nelements:
+                while nlines < self.nnodes + self.ninterfaces + self.nelements:
                     llines = f.readline().rsplit()
                     i1.append(int(llines[0]) - 1)
                     i2.append(int(llines[2]) - 1)
                     i3.append(int(llines[4]) - 1)
                     nlines += 1
 
-            cls.xnode = np.array(xnode)
-            cls.ynode = np.array(ynode)
-            cls.i1 = np.array(i1)
-            cls.i2 = np.array(i2)
-            cls.i3 = np.array(i3)
+            self.xnode = np.array(xnode)
+            self.ynode = np.array(ynode)
+            self.i1 = np.array(i1)
+            self.i2 = np.array(i2)
+            self.i3 = np.array(i3)
 
-            return cls
+            return self
 
         elif os.path.exists(filename1):
             logger.error("Mesh topography file {0} does not exist".format(filename2))
@@ -1117,8 +1117,7 @@ class Diva2DMesh(object):
             logger.error("Mesh files {0} and {1} don't exist".format(filename1, filename2))
             raise FileNotFoundError('File does not exist')
 
-    @classmethod
-    def make(cls, divadir, contourfile=None, paramfile=None):
+    def make(self, divadir, contourfile=None, paramfile=None):
         """Perform the mesh generation using script divamesh
 
         :param divadir: main Diva directory
@@ -1169,12 +1168,12 @@ class Diva2DMesh(object):
                 logger.info("Finished generation of the finite-element mesh")
                 # Read the mesh from the created files
 
-                cls.read_from(filename1=divafiles.mesh,
+                self.read_from(filename1=divafiles.mesh,
                               filename2=divafiles.meshtopo)
         else:
             logger.error("Mesh not generated, check log for more details")
 
-        return cls
+        return self
 
     def describe(self):
         """Summarise the mesh characteristics
