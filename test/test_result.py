@@ -1,5 +1,7 @@
+import os
 import numpy as np
 import pydiva2d
+import subprocess
 import unittest
 
 
@@ -17,6 +19,7 @@ class TestResultMethods(unittest.TestCase):
         self.paramfile = "../data/param.par"
         self.resultfile = "./data/resultsquare.nc"
         self.noresultfile = "./data/noresult.nc"
+        self.outputfile = "./data/testresult.nc"
         
     def test_init(self):
         """
@@ -91,17 +94,24 @@ class TestResultMethods(unittest.TestCase):
 
         results = pydiva2d.Diva2DResults().make(self.divadir, datafile=self.datafile,
                                                 paramfile=self.paramfile,
-                                                contourfile=self.coastfile)
+                                                contourfile=self.coastfile,
+                                                outputfile=self.outputfile)
 
-        #results.make(self.divadir, datafile=self.datafile,
-        #             paramfile=self.paramfile,
-        #             contourfile=self.coastfile)
-
+        self.assertTrue(os.path.exists(self.outputfile))
         self.assertEqual(results.x[10], 28.)
         self.assertEqual(results.y[20], 42.)
         self.assertAlmostEqual(results.analysis.data.mean(), -70.0825347900)
         self.assertAlmostEqual(results.analysis.data.max(), -3.5384511948)
         self.assertEqual(results.analysis.data.min(), -99.)
+
+    def tearDown(self):
+        if os.path.exists(self.outputfile):
+            os.remove(self.outputfile)
+
+        # Clean Diva intermediate directories
+        subprocess.Popen("./divaclean", cwd=os.path.join(self.divadir, "DIVA3D/divastripped"),
+                         stdout=subprocess.PIPE, shell=True)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -63,5 +63,14 @@ class TestContourMethods(unittest.TestCase):
         self.assertRaises(FileNotFoundError,
                           lambda: pydiva2d.Diva2DContours().read_from(self.nocoastfile))
 
+    def test_create_geojson(self, filename):
+        """
+        Check if geoJSON is properly created from contours
+        :param filename: path to the file to be created
+        :type filename: str
+        """
+
+    def
+
 if __name__ == '__main__':
     unittest.main()
