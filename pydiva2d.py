@@ -299,6 +299,13 @@ class Diva2DData(object):
             ndata = 0
         return ndata
 
+    def to_geojson(self, filename):
+        """
+        Create a geoJSON file containing the data points
+        :param filename: path to the file to be created
+        :type file: str
+        """
+
 
 class Diva2DContours(object):
     """Class that stores the properties of a contour
@@ -870,7 +877,7 @@ class Diva2DResults(object):
 
         return resultplot
 
-    def make(self, divadir, datafile=None, paramfile=None, contourfile=None):
+    def make(self, divadir, datafile=None, paramfile=None, contourfile=None, outputfile=None):
         """Perform the interpolation using script divacalc
         :param divadir: main Diva directory
         :type divadir: str
@@ -880,6 +887,8 @@ class Diva2DResults(object):
         :type paramfile: str
         :param contourfile: path to the file containing the contour(s)
         :type contourfile: str
+        :param outputfile: path to the file where the results have to be written
+        :type outputfile: str
         """
 
         divadirs = DivaDirectories(divamain=divadir)
@@ -902,23 +911,35 @@ class Diva2DResults(object):
                 logger.error("No param.par file in ./input")
                 return
         else:
-            try:
-                shutil.copy2(paramfile, divafiles.parameter)
-            except FileNotFoundError:
-                logger.error("File {0} doesn't exist".format(paramfile))
-                logger.error("Execution stopped")
-                return
+            if paramfile != divafiles.parameter:
+                try:
+                    shutil.copy2(paramfile, divafiles.parameter)
+                except FileNotFoundError:
+                    logger.error("File {0} doesn't exist".format(paramfile))
+                    logger.error("Execution stopped")
+                    return
+
 
         if contourfile is None:
             if not os.path.exists(divafiles.contour):
                 logger.error("No coast.cont file in ./input")
         else:
-            try:
-                shutil.copy2(contourfile, divafiles.contour)
-            except FileNotFoundError:
-                logger.error("File {0} doesn't exist".format(contourfile))
-                logger.error("Execution stopped")
-                return
+            if contourfile != divafiles.contour:
+                try:
+                    shutil.copy2(contourfile, divafiles.contour)
+                except FileNotFoundError:
+                    logger.error("File {0} doesn't exist".format(contourfile))
+                    logger.error("Execution stopped")
+                    return
+
+        # Check for mesh
+        if os.path.exists(divafiles.mesh) and os.path.exists(divafiles.meshtopo):
+            logger.info("Mesh already exists")
+        else:
+            Diva2DMesh().make(divadir,
+                              contourfile=divafiles.contour,
+                              paramfile=divafiles.parameter)
+
 
         calcprocess = subprocess.Popen("./divacalc", cwd=divadirs.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
@@ -933,6 +954,10 @@ class Diva2DResults(object):
             logger.info("Finished generation of analysis field")
             # Read the analysis from the netCDF
             self.read_from(divafiles.result)
+            # Copy results to another file if define
+            if outputfile is not None:
+                logger.debug("Copy result file to {0}".format(outputfile))
+                shutil.copy2(divafiles.result, outputfile)
             return self
         else:
             logger.error("Analysis not performed, check log for more details")
@@ -1133,23 +1158,25 @@ class Diva2DMesh(object):
                 logger.error("No param.par file in ./input")
                 return
         else:
-            try:
-                shutil.copy2(paramfile, divafiles.parameter)
-            except FileNotFoundError:
-                logger.error("File {0} doesn't exist".format(paramfile))
-                logger.error("Execution stopped")
-                return
+            if paramfile != divafiles.parameter:
+                try:
+                    shutil.copy2(paramfile, divafiles.parameter)
+                except FileNotFoundError:
+                    logger.error("File {0} doesn't exist".format(paramfile))
+                    logger.error("Execution stopped")
+                    return
 
         if contourfile is None:
             if not os.path.exists(divafiles.contour):
                 logger.error("No coast.cont file in ./input")
         else:
-            try:
-                shutil.copy2(contourfile, divafiles.contour)
-            except FileNotFoundError:
-                logger.error("File {0} doesn't exist".format(contourfile))
-                logger.error("Execution stopped")
-                return
+            if contourfile != divafiles.contour:
+                try:
+                    shutil.copy2(contourfile, divafiles.contour)
+                except FileNotFoundError:
+                    logger.error("File {0} doesn't exist".format(contourfile))
+                    logger.error("Execution stopped")
+                    return
 
         meshprocess = subprocess.Popen("./divamesh", cwd=divadirs.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
