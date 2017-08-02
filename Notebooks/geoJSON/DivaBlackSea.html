@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8"/>
+		
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.css" />
+		<script src ="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.0.3/leaflet.js"></script>
+		<title>Diva Black Sea - Analysis of Mixed Depth Layer</title>
+		<style type="text/css">
+			#map {height: 800px}
+			.legend {
+			line-height: 18px;
+			color: #555;
+			background: white;
+			}
+			.legend i {
+				width: 18px;
+				height: 18px;
+				float: left;
+				margin-right: 8px;
+				opacity: 1.;
+			}
+		</style>
+	</head>
+	
+	<body>
+		
+		<div id="map"></div>		
+		<script type="text/javascript" src="blacksea-data.js"></script>
+		<script type="text/javascript" src="blacksea-contours.js"></script>
+		<script type="text/javascript" src="blacksea-mesh.js"></script>
+		<script type="text/javascript" src="blacksea-results.js"></script>	
+		<script>
+			
+			var map = L.map('map', {
+			  center: [43., 35.],
+			  zoom: 6
+			});
+			
+			map.createPane('labels');
+			map.getPane('labels').style.zIndex = 950;
+			map.getPane('labels').style.pointerEvents = 'none';
+			
+			var Esri_OceanBasemap = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}', {
+				attribution: 'Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri',
+				maxZoom: 13
+			}).addTo(map);
+			
+			var Esri_Labels = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
+				attribution: 'Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri',
+				pane: 'labels'
+			});
+			
+			var Stamen_Terrain = L.tileLayer('http://stamen-tiles-{s}.a.ssl.fastly.net/terrain/{z}/{x}/{y}.{ext}', {
+				attribution: 'Map tiles by <a href="http://stamen.com">Stamen Design</a>, <a href="http://creativecommons.org/licenses/by/3.0">CC BY 3.0</a> &mdash; Map data &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+				subdomains: 'abcd',
+				minZoom: 0,
+				maxZoom: 18,
+				ext: 'png'
+			});
+			
+			var OpenStreetMap_Mapnik = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+				maxZoom: 19,
+				attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+			});
+			
+			var cartodbAttribution = '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="http://cartodb.com/attributions">CartoDB</a>';
+			
+			var positron = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png', {
+				attribution: cartodbAttribution
+			});
+			
+			var positronLabels = L.tileLayer('http://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}.png', {
+				attribution: cartodbAttribution,
+				pane: 'labels'
+			});
+			
+			var baseMaps = {
+				"Esri Ocean Basemap": Esri_OceanBasemap,
+				"Positron": positron,
+				"Stamen Terrain": Stamen_Terrain,
+				"Open Street Map": OpenStreetMap_Mapnik
+			};
+			
+			
+			var legend = L.control({position: 'bottomright'});
+
+			legend.onAdd = function (map) {
+
+				var div = L.DomUtil.create('div', 'info legend'),
+					grades = [-50, -45, -40, -35, -30, -25, -20, -15],
+					labels = [];
+
+				div.innerHTML += '<b>Mixed layer depth (m)</b><br>'  
+				
+				// loop through our density intervals and generate a label with a colored square for each interval
+				for (var i = 0; i < grades.length; i++) {
+					div.innerHTML +=
+						'<i style="background:' + getMoreColor(grades[i] + 1) + '"></i> ' +
+						grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '<br>' : '+');
+				}
+
+				return div;
+			};
+
+			legend.addTo(map);
+			
+			function getMoreColor(d) {
+				return d < -50 ? '#d73027' :
+					   d < -45 ? '#f46d43' :
+					   d < -40 ? '#fdae61' : 
+					   d < -35 ? '#fee090' : 
+					   d < -30 ? '#ffffbf' : 
+					   d < -25 ? '#e0f3f8' :
+					   d < -20 ? '#abd9e9' : 
+					   d < -15 ? '#74add1' :
+								  '#4575b4' ;
+			}
+			
+			function dataStyle(feature) {
+				return {
+					radius: 5,
+					fillColor: getMoreColor(feature.properties.field),
+					weight: 1,
+					opacity: 1,
+					color: 'black',
+					fillOpacity: 0.7
+				};
+			}
+
+			var contourStyle = {
+				weight: 3,
+				opacity: 1,
+				color : 'grey',
+				fillOpacity: 0.
+			}
+			
+			var meshStyle = {
+				weight: 0.5,
+				opacity: 1,
+				color : 'grey',
+				fillOpacity: 0.
+			}
+			
+			var geojsonMarkerOptions = {
+				radius: 5,
+				fillColor: "#ff7800",
+				color: "#000",
+				weight: 1,
+				opacity: 1,
+				fillOpacity: 1
+			};
+			
+	
+			function fieldStyle(feature) {
+                return {
+					radius: 5,
+                    fillColor: getMoreColor(feature.properties.field),
+                    color: getMoreColor(feature.properties.field),
+                    weight: 1,
+                    opacity: 0.4,
+                    fillOpacity: 0.4
+                };
+            }		
+            
+		
+			var divamesh = new L.GeoJSON(mesh, {style: meshStyle});
+			var divafield = new L.GeoJSON(results, {style: fieldStyle}).addTo(map);
+			var divacontours = new L.GeoJSON(contours, {style: contourStyle}).addTo(map);
+			
+			var divadata = new L.GeoJSON(data, {
+				style: dataStyle,
+				pointToLayer: function (feature, latlng) {
+					return L.circleMarker(latlng, {radius: 10, fillOpacity: 0.85});
+				}
+			}).addTo(map);
+						
+			var overlayers = {
+				"Contour" : divacontours,
+				"Mesh" : divamesh,
+				"Observations" : divadata,	
+				"Field" : divafield
+			};
+			
+			L.control.layers(baseMaps, overlayers, {collapsed:false}).addTo(map);
+			
+		</script>
+			
+	</body>
+</html>
