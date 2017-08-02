@@ -336,7 +336,8 @@ class Diva2DData(object):
 
 
 class Diva2DContours(object):
-    """Class that stores the properties of a contour
+    """
+    Class that stores the properties of a contour
     """
 
     def __init__(self, x=None, y=None):
@@ -386,7 +387,8 @@ class Diva2DContours(object):
 
     @property
     def get_points_number(self):
-        """For each contour, return the number of points
+        """
+        For each contour, return the number of points
         """
         ncontour = self.get_contours_number
         npoints = []
