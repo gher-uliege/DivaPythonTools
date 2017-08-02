@@ -6,9 +6,12 @@ import netCDF4
 import subprocess
 import shutil
 import numpy as np
+import json
+import geojson
 import matplotlib.pyplot as plt
 from matplotlib import path
 from matplotlib import patches
+import matplotlib._cntr as cntr
 
 __author__ = 'ctroupin (GHER, ULg)'
 """Module for running Diva2D, including:
@@ -299,12 +302,37 @@ class Diva2DData(object):
             ndata = 0
         return ndata
 
-    def to_geojson(self, filename):
+    def to_geojson(self, filename, varname='data'):
         """
-        Create a geoJSON file containing the data points
-        :param filename: path to the file to be created
-        :type file: str
+        Write the contour to a geojson file
+        :param filename: path to the file to be written
+        :type filename: str
+        :param varname: name of the js variable that will represent the contours
+        :type varname: str
         """
+
+        geojsondata = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "Point",
+                        "coordinates": [lon, lat],
+                    },
+                    "properties": {"field": field, "weight": weight},
+                } for lon, lat, field, weight in zip(self.x, self.y, self.field, self.weight)]
+        }
+
+        try:
+            with open(os.path.join(filename), 'w') as f:
+                f.write("".join(("var ", varname, " = ")))
+                out = json.dumps(geojsondata, indent=2, separators=(',', ': '))
+                f.write(out)
+
+        except FileNotFoundError:
+            logger.error("Directory {} does not exist".format(os.path.basename(filename)))
+            raise FileNotFoundError('Directory does not exist')
 
 
 class Diva2DContours(object):
@@ -386,6 +414,30 @@ class Diva2DContours(object):
                     f.write(line + '\n')
 
         logger.info("Written contours into file {0}".format(filename))
+
+    def to_geojson(self, filename, varname='contours'):
+        """
+        Write the contour to a geojson file
+        :param filename: path to the file to be written
+        :type filename: str
+        :param varname: name of the js variable that will represent the contours
+        :type varname: str
+        """
+
+        geojsoncontour = {
+            "type": "MultiPolygon",
+            "coordinates": [[[[x, y] for x, y in zip(self.x[cont], self.y[cont])]] for cont in
+                            range(0, self.get_contours_number)]
+        }
+
+        try:
+            with open(os.path.join(filename), 'w') as f:
+                f.write("".join(("var ", varname, " = ")))
+                out = json.dumps(geojsoncontour, indent=2, separators=(',', ': '))
+                f.write(out)
+        except FileNotFoundError:
+            logger.error("Directory {} does not exist".format(os.path.basename(filename)))
+            raise FileNotFoundError('Directory does not exist')
 
     def read_from_np(self, filename):
         """Get the coordinates of the contour from an already existing contour file.
@@ -829,6 +881,45 @@ class Diva2DResults(object):
         except OSError:
             logger.error("File {0} does not exist".format(filename))
             raise FileNotFoundError('File does not exist')
+
+    def to_geojson(self, filename, varname='results', levels=None):
+        """
+        Write the analysed field or the error to a geoJSON file
+        :param filename: path to the file to be written
+        :type filename: str
+        :param varname: name of the js variable that will represent the analysed or error field
+        :type varname: str
+        """
+
+        llon, llat = np.meshgrid(self.x, self.y)
+        contoursField = cntr.Cntr(llon, llat, self.analysis)
+        if levels is None:
+            # By default we represent 10 levels from min to max
+            levels = np.linspace(self.analysis.min(), self.analysis.max(), 10)
+
+        geojsonfield = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "geometry": {
+                        "type": "MultiPolygon",
+                        "coordinates": [[[[lon, lat] for lon, lat in seg] for seg in
+                                         contoursField.trace(level)[:len(contoursField.trace(level)) // 2]]],
+                    },
+                    "properties": {"field": str(level)},
+                } for level in levels]
+        }
+
+        try:
+            with open(os.path.join(filename), 'w') as f:
+                f.write("".join(("var ", varname, " = ")))
+                out = json.dumps(geojsonfield, indent=2, separators=(',', ': '))
+                f.write(out)
+
+        except FileNotFoundError:
+            logger.error("Directory {} does not exist".format(os.path.basename(filename)))
+            raise FileNotFoundError('Directory does not exist')
 
     def add_to_plot(self, field='analysis', m=None, **kwargs):
         """Add the result to the plot
@@ -1348,6 +1439,35 @@ class Diva2DMesh(object):
                 ynodemean = (1. / 3.) * (ynode_proj[self.i1[j]] + ynode_proj[self.i2[j]] + ynode_proj[self.i3[j]])
                 plt.text(xnodemean, ynodemean, str(j + 1),
                          ha='center', va='center', **kwargs)
+
+    def to_geojson(self, filename, varname='mesh'):
+        """
+        Write the mesh to a geojson file
+        :param filename: path to the file to be written
+        :type filename: str
+        :param varname: name of the js variable that will represent the mesh
+        :type varname: str
+        """
+
+        NN = self.nelements
+        verts = []
+        for j in range(0, NN):
+            verts.append([[(self.xnode[self.i1[j]], self.ynode[self.i1[j]]),
+                           (self.xnode[self.i2[j]], self.ynode[self.i2[j]]),
+                           (self.xnode[self.i3[j]], self.ynode[self.i3[j]]),
+                           (self.xnode[self.i1[j]], self.ynode[self.i1[j]])]]
+                         )
+        geojsonmesh = geojson.MultiPolygon(verts)
+
+        try:
+            with open(os.path.join(filename), 'w') as f:
+                f.write("".join(("var ", varname, " = ")))
+                out = json.dumps(geojsonmesh, indent=2, separators=(',', ': '))
+                f.write(out)
+
+        except FileNotFoundError:
+            logger.error("Directory {} does not exist".format(os.path.basename(filename)))
+            raise FileNotFoundError('Directory does not exist')
 
 
 def main():
