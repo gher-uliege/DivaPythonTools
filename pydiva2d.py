@@ -1025,7 +1025,7 @@ class Diva2DResults(object):
                     logger.error("File {0} doesn't exist".format(contourfile))
                     logger.error("Execution stopped")
                     return
-        """
+
         # Check for mesh
         if os.path.exists(divafiles.mesh) and os.path.exists(divafiles.meshtopo):
             logger.info("Mesh already exists")
@@ -1033,7 +1033,7 @@ class Diva2DResults(object):
             Diva2DMesh().make(divadir,
                               contourfile=divafiles.contour,
                               paramfile=divafiles.parameter)
-        """
+        
 
         calcprocess = subprocess.run("./divacalc", cwd=divadirs.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
