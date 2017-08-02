@@ -891,10 +891,12 @@ class Diva2DResults(object):
         :type filename: str
         :param varname: name of the js variable that will represent the analysed or error field
         :type varname: str
+        :param levels: list of levels to be contour-ed
+        :type levels: list or np.array
         """
 
         llon, llat = np.meshgrid(self.x, self.y)
-        contoursField = cntr.Cntr(llon, llat, self.analysis)
+        contoursfield = cntr.Cntr(llon, llat, self.analysis)
         if levels is None:
             # By default we represent 10 levels from min to max
             levels = np.linspace(self.analysis.min(), self.analysis.max(), 10)
@@ -907,7 +909,7 @@ class Diva2DResults(object):
                     "geometry": {
                         "type": "MultiPolygon",
                         "coordinates": [[[[lon, lat] for lon, lat in seg] for seg in
-                                         contoursField.trace(level)[:len(contoursField.trace(level)) // 2]]],
+                                         contoursfield.trace(level)[:len(contoursfield.trace(level)) // 2]]],
                     },
                     "properties": {"field": str(level)},
                 } for level in levels]
@@ -1012,7 +1014,6 @@ class Diva2DResults(object):
                     logger.error("Execution stopped")
                     return
 
-
         if contourfile is None:
             if not os.path.exists(divafiles.contour):
                 logger.error("No coast.cont file in ./input")
@@ -1024,7 +1025,7 @@ class Diva2DResults(object):
                     logger.error("File {0} doesn't exist".format(contourfile))
                     logger.error("Execution stopped")
                     return
-
+        """
         # Check for mesh
         if os.path.exists(divafiles.mesh) and os.path.exists(divafiles.meshtopo):
             logger.info("Mesh already exists")
@@ -1032,11 +1033,11 @@ class Diva2DResults(object):
             Diva2DMesh().make(divadir,
                               contourfile=divafiles.contour,
                               paramfile=divafiles.parameter)
+        """
 
-
-        calcprocess = subprocess.Popen("./divacalc", cwd=divadirs.diva2d,
+        calcprocess = subprocess.run("./divacalc", cwd=divadirs.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
-        out = calcprocess.stdout.read()
+        out = calcprocess.stdout
 
         if logfile:
             with open(logfile, 'a') as f:
@@ -1271,9 +1272,9 @@ class Diva2DMesh(object):
                     logger.error("Execution stopped")
                     return
 
-        meshprocess = subprocess.Popen("./divamesh", cwd=divadirs.diva2d,
-                                       stdout=subprocess.PIPE, shell=True)
-        out = meshprocess.stdout.read()
+        meshprocess = subprocess.run("./divamesh", cwd=divadirs.diva2d,
+                                     stdout=subprocess.PIPE, shell=True)
+        out = meshprocess.stdout
 
         if logfile:
             with open(logfile, 'a') as f:
@@ -1286,7 +1287,7 @@ class Diva2DMesh(object):
                 # Read the mesh from the created files
 
                 self.read_from(filename1=divafiles.mesh,
-                              filename2=divafiles.meshtopo)
+                               filename2=divafiles.meshtopo)
         else:
             logger.error("Mesh not generated, check log for more details")
 

@@ -3,6 +3,9 @@ import unittest
 import os
 import subprocess
 
+print("Running tests on Diva Kernel")
+print(" ")
+
 
 class TestDivaKernel(unittest.TestCase):
 
@@ -68,8 +71,8 @@ class TestDivaKernel(unittest.TestCase):
         cls.paramfile = "./datawrite/param.par"
 
         # Clean Diva intermediate directories and files
-        subprocess.Popen("./divaclean", cwd=os.path.join(cls.divadir, "DIVA3D/divastripped"),
-                         stdout=subprocess.PIPE, shell=True)
+        subprocess.run("./divaclean", cwd=os.path.join(cls.divadir, "DIVA3D/divastripped"),
+                       stdout=subprocess.PIPE, shell=True)
 
         os.remove(cls.contourfile)
         os.remove(cls.paramfile)

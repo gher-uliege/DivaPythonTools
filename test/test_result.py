@@ -4,6 +4,9 @@ import pydiva2d
 import subprocess
 import unittest
 
+print("Running tests on Diva results")
+print(" ")
+
 
 class TestResultMethods(unittest.TestCase):
 
@@ -152,7 +155,7 @@ class TestResultMethods(unittest.TestCase):
         cls.geojsonfile = "./datawrite/results.js"
 
         # Clean Diva intermediate directories and files
-        subprocess.Popen("./divaclean", cwd=os.path.join(cls.divadir, "DIVA3D/divastripped"),
+        subprocess.run("./divaclean", cwd=os.path.join(cls.divadir, "DIVA3D/divastripped"),
                          stdout=subprocess.PIPE, shell=True)
 
         os.remove(cls.outputfile)

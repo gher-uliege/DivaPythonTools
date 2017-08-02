@@ -3,6 +3,9 @@ import pydiva2d
 import unittest
 import os
 
+print("Running tests on Diva contours")
+print(" ")
+
 
 class TestContourMethods(unittest.TestCase):
 

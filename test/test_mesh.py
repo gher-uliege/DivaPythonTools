@@ -1,58 +1,64 @@
 import pydiva2d
 import unittest
+import subprocess
 import os
+
+
+print("Running tests on Diva mesh")
+print(" ")
+
 
 class TestMeshMethods(unittest.TestCase):
 
-
-    def setUp(self):
-        self.EmptyMesh = pydiva2d.Diva2DMesh()
-        self.meshfile = "./data/mesh.dat"
-        self.meshtopofile = "./data/meshtopo.dat"
-        self.nomeshfile = "./data/nomesh.dat"
-        self.nomeshtopofile = "./data/nomeshtopo.dat"
-        self.coastfile = "./data/coast_mesh.cont"
-        self.paramfile = "./data/param_mesh.par"
-        self.noparamfile = "./data/noparam_mesh.par"
-        self.divadir = "/home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/"
-        self.nogeojsonfile = "./nodata/mesh.js"
-        self.geojsonfile = "./data/mesh.js"
+    @classmethod
+    def setUpClass(cls):
+        cls.EmptyMesh = pydiva2d.Diva2DMesh()
+        cls.meshfile = "./dataread/mesh.dat"
+        cls.meshtopofile = "./dataread/meshtopo.dat"
+        cls.nomeshfile = "./dataread/nomesh.dat"
+        cls.nomeshtopofile = "./dataread/nomeshtopo.dat"
+        cls.coastfile = "./dataread/coast_mesh.cont"
+        cls.paramfile = "./dataread/param_mesh.par"
+        cls.noparamfile = "./dataread/noparam_mesh.par"
+        cls.divadir = "/home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/"
+        cls.nogeojsonfile = "./nodata/mesh.js"
+        cls.geojsonfile = "./datawrite/mesh.js"
 
     def test_init_empty(self):
         """
         Instantiate an empty Mesh object
         """
-        self.assertTrue(not(self.EmptyMesh.i1))
-        self.assertTrue(not(self.EmptyMesh.nelements))
-        self.assertTrue(not(self.EmptyMesh.ninterfaces))
-        self.assertTrue(not(self.EmptyMesh.nnodes))
+        self.assertTrue(not self.EmptyMesh.i1)
+        self.assertTrue(not self.EmptyMesh.nelements)
+        self.assertTrue(not self.EmptyMesh.ninterfaces)
+        self.assertTrue(not self.EmptyMesh.nnodes)
 
     def test_read_file(self):
         """
         Instantiate Mesh object by reading existing file
         """
-        SquareMesh = pydiva2d.Diva2DMesh().read_from(self.meshfile, self.meshtopofile)
-        self.assertEqual(SquareMesh.nelements, 348)
-        self.assertEqual(SquareMesh.nnodes, 197)
-        self.assertEqual(SquareMesh.ninterfaces, 544)
-        self.assertEqual(len(SquareMesh.i1), SquareMesh.nelements)
-        self.assertEqual(len(SquareMesh.i1), len(SquareMesh.i2))
-        self.assertEqual(len(SquareMesh.i2), len(SquareMesh.i3))
-        self.assertEqual(SquareMesh.i1[6], 43)
+        squaremesh = pydiva2d.Diva2DMesh().read_from(self.meshfile, self.meshtopofile)
+        self.assertEqual(squaremesh.nelements, 348)
+        self.assertEqual(squaremesh.nnodes, 197)
+        self.assertEqual(squaremesh.ninterfaces, 544)
+        self.assertEqual(len(squaremesh.i1), squaremesh.nelements)
+        self.assertEqual(len(squaremesh.i1), len(squaremesh.i2))
+        self.assertEqual(len(squaremesh.i2), len(squaremesh.i3))
+        self.assertEqual(squaremesh.i1[6], 43)
 
     def test_read_file_numpy(self):
         """
         Instantiate Mesh object by reading existing file
         using numpy module
         """
-        SquareMesh = pydiva2d.Diva2DMesh().read_from_np(self.meshfile, self.meshtopofile)
-        self.assertEqual(SquareMesh.nelements, 348)
-        self.assertEqual(SquareMesh.nnodes, 197)
-        self.assertEqual(SquareMesh.ninterfaces, 544)
-        self.assertEqual(len(SquareMesh.i1), SquareMesh.nelements)
-        self.assertEqual(len(SquareMesh.i1), len(SquareMesh.i2))
-        self.assertEqual(len(SquareMesh.i2), len(SquareMesh.i3))
-        self.assertEqual(SquareMesh.i1[6], 43)
+        squaremesh = pydiva2d.Diva2DMesh().read_from_np(self.meshfile, self.meshtopofile)
+        self.assertEqual(squaremesh.nelements, 348)
+        self.assertEqual(squaremesh.nnodes, 197)
+        self.assertEqual(squaremesh.ninterfaces, 544)
+        self.assertEqual(len(squaremesh.i1), squaremesh.nelements)
+        self.assertEqual(len(squaremesh.i1), len(squaremesh.i2))
+        self.assertEqual(len(squaremesh.i2), len(squaremesh.i3))
+        self.assertEqual(squaremesh.i1[6], 43)
 
     def test_read_nonexisting_file(self):
         """
@@ -84,22 +90,18 @@ class TestMeshMethods(unittest.TestCase):
 
     def test_write_nonexisting_geojson(self):
         """
-        Check if geoJSON is properly created from contours
-        :param filename: path to the file to be created
-        :type filename: str
+        Check if error is raised when the file cannot be written
         """
-        SquareMesh = pydiva2d.Diva2DMesh().read_from(self.meshfile, self.meshtopofile)
+        squaremesh = pydiva2d.Diva2DMesh().read_from(self.meshfile, self.meshtopofile)
         self.assertRaises(FileNotFoundError,
-                          lambda: SquareMesh.to_geojson(filename=self.nogeojsonfile))
+                          lambda: squaremesh.to_geojson(filename=self.nogeojsonfile))
 
     def test_write_geojson(self):
         """
-        Check if geoJSON is properly created from contours
-        :param filename: path to the file to be created
-        :type filename: str
+        Check if geoJSON is properly created from finite-element mesh
         """
-        SquareMesh = pydiva2d.Diva2DMesh().read_from(self.meshfile, self.meshtopofile)
-        SquareMesh.to_geojson(filename=self.geojsonfile)
+        squaremesh = pydiva2d.Diva2DMesh().read_from(self.meshfile, self.meshtopofile)
+        squaremesh.to_geojson(filename=self.geojsonfile)
 
         self.assertTrue(os.path.exists(self.geojsonfile))
 
@@ -110,7 +112,7 @@ class TestMeshMethods(unittest.TestCase):
         self.assertEqual(line0, "var mesh = {")
         self.assertEqual(len(lines), 6965)
 
-        SquareMesh.to_geojson(filename=self.geojsonfile, varname="divamesh")
+        squaremesh.to_geojson(filename=self.geojsonfile, varname="divamesh")
         self.assertTrue(os.path.exists(self.geojsonfile))
 
         with open(self.geojsonfile) as f:
@@ -120,7 +122,14 @@ class TestMeshMethods(unittest.TestCase):
         self.assertEqual(line0, "var divamesh = {")
         self.assertEqual(len(lines), 6965)
 
+    @classmethod
+    def tearDownClass(cls):
 
+        cls.divadir = "/home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/"
+        cls.geojsonfile = "./datawrite/mesh.js"
 
+        # Clean Diva intermediate directories and files
+        subprocess.run("./divaclean", cwd=os.path.join(cls.divadir, "DIVA3D/divastripped"),
+                       stdout=subprocess.PIPE, shell=True)
 
-
+        os.remove(cls.geojsonfile)

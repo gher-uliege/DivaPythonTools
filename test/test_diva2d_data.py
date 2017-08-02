@@ -3,6 +3,9 @@ import pydiva2d
 import os
 import unittest
 
+print("Running tests on Diva data")
+print(" ")
+
 
 class TestDivaData(unittest.TestCase):
 
