@@ -1,6 +1,7 @@
 logs
 *.pyc
 test/logs/
+test/datawrite/
 Notebooks/logs/
 Notebooks/figures/
 Notebooks/.ipynb_checkpoints/
