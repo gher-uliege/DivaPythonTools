@@ -1033,7 +1033,7 @@ class Diva2DResults(object):
             Diva2DMesh().make(divadir,
                               contourfile=divafiles.contour,
                               paramfile=divafiles.parameter)
-        
+
 
         calcprocess = subprocess.run("./divacalc", cwd=divadirs.diva2d,
                                        stdout=subprocess.PIPE, shell=True)
