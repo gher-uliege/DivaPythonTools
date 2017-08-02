@@ -3,17 +3,20 @@ import pydiva2d
 import unittest
 import os
 
+
 class TestContourMethods(unittest.TestCase):
 
-    def setUp(self):
-        self.xlist = [[0.7173, 10.9596, 0.71213338], [3.424071, 23.9648, 23.8063, 3.4999]]
-        self.ylist = [[-1.7529, -1.257, 5.00245219], [1.6594, 1.945, 3.7673, 4.36759776]]
-        self.xx = np.array(((0.1, 4., 4, 1), (6.3, 9.3, 8.8, 7.4)))
-        self.yy = np.array(((0.3, 1., 3.4, 1.8), (-1., -1.4, 2.2, 3.3)))
-        self.coastfile = "../data/coast.cont"
-        self.nocoastfile = "../data/nocoast.cont"
-        self.nogeojsonfile = "./nodata/contours.js"
-        self.geojsonfile = "./data/contours.js"
+    @classmethod
+    def setUp(cls):
+        cls.xlist = [[0.7173, 10.9596, 0.71213338], [3.424071, 23.9648, 23.8063, 3.4999]]
+        cls.ylist = [[-1.7529, -1.257, 5.00245219], [1.6594, 1.945, 3.7673, 4.36759776]]
+        cls.xx = np.array(((0.1, 4., 4, 1), (6.3, 9.3, 8.8, 7.4)))
+        cls.yy = np.array(((0.3, 1., 3.4, 1.8), (-1., -1.4, 2.2, 3.3)))
+        cls.coastfile = "../data/coast.cont"
+        cls.outputfile = "./datawrite/coast.cont"
+        cls.nocoastfile = "../data/nocoast.cont"
+        cls.nogeojsonfile = "./nodata/contours.js"
+        cls.geojsonfile = "./datawrite/contours.js"
 
     def test_init(self):
         """
@@ -65,11 +68,25 @@ class TestContourMethods(unittest.TestCase):
         self.assertRaises(FileNotFoundError,
                           lambda: pydiva2d.Diva2DContours().read_from(self.nocoastfile))
 
+    def test_write_file(self):
+        """
+        Write a contour to a file
+        """
+        contour = pydiva2d.Diva2DContours(self.xx, self.yy)
+        contour.write_to(self.outputfile)
+
+        self.assertTrue(os.path.exists(self.outputfile))
+        with open(self.outputfile) as f:
+            lines = f.readlines()
+            lastline = lines[-1].rstrip()
+            self.assertEqual(int(lines[0].rstrip()), 2)
+            self.assertEqual(int(lines[1].rstrip()), 4)
+            self.assertEqual(float(lastline.split()[0]), 7.4)
+            self.assertEqual(len(lines), 11)
+
     def test_write_nonexisting_geojson(self):
         """
         Check if geoJSON is properly created from contours
-        :param filename: path to the file to be created
-        :type filename: str
         """
         contour = pydiva2d.Diva2DContours(self.xlist, self.ylist)
         self.assertRaises(FileNotFoundError,
@@ -78,8 +95,6 @@ class TestContourMethods(unittest.TestCase):
     def test_write_geojson(self):
         """
         Check if geoJSON is properly created from contours
-        :param filename: path to the file to be created
-        :type filename: str
         """
         contour = pydiva2d.Diva2DContours(self.xlist, self.ylist)
         contour.to_geojson(filename=self.geojsonfile)
@@ -103,8 +118,15 @@ class TestContourMethods(unittest.TestCase):
         self.assertEqual(line0, "var divacont = {")
         self.assertEqual(len(lines), 41)
 
+    @classmethod
+    def tearDownClass(cls):
+        print("Tearing down...")
 
+        cls.geojsonfile = "./datawrite/contours.js"
+        cls.outputfile = "./datawrite/coast.cont"
 
+        os.remove(cls.outputfile)
+        os.remove(cls.geojsonfile)
 
 if __name__ == '__main__':
     unittest.main()

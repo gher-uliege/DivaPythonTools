@@ -1,27 +1,29 @@
-import numpy as np
 import pydiva2d
 import unittest
+import os
 
 
 class TestParamMethods(unittest.TestCase):
 
-    def setUp(self):
-        self.cl = 1.244
-        self.icoordchange = 0
-        self.ispec = -11
-        self.ireg = 2
-        self.xori = -10.1
-        self.yori = .0001
-        self.dx = 0.25
-        self.dy = 0.333
-        self.nx = 401
-        self.ny = 151
-        self.valex = -999.
-        self.snr = .5
-        self.varbak = 1.0
-        self.divadir = "/home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/"
-        self.paramfile = "../data/param.par"
-        self.noparamfile = "./data/noparam.par"
+    @classmethod
+    def setUpClass(cls):
+        cls.cl = 1.244
+        cls.icoordchange = 0
+        cls.ispec = -11
+        cls.ireg = 2
+        cls.xori = -10.1
+        cls.yori = .0001
+        cls.dx = 0.25
+        cls.dy = 0.333
+        cls.nx = 401
+        cls.ny = 151
+        cls.valex = -999.
+        cls.snr = .5
+        cls.varbak = 1.0
+        cls.divadir = "/home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/"
+        cls.paramfile = "../data/param.par"
+        cls.noparamfile = "./data/noparam.par"
+        cls.outputfile = "./datawrite/param.par"
 
     def test_init(self):
         """Instantiate Parameter object with pre-set values
@@ -62,10 +64,32 @@ class TestParamMethods(unittest.TestCase):
         """
         self.assertRaises(FileNotFoundError,
                           lambda: pydiva2d.Diva2DParameters().read_from(self.noparamfile))
+        
+    def test_write_file(self):
 
+        parameters = pydiva2d.Diva2DParameters(self.cl, self.icoordchange, self.ispec,
+                                               self.ireg, self.xori, self.yori, self.dx,
+                                               self.dy, self.nx, self.ny, self.valex,
+                                               self.snr, self.varbak)
+
+        parameters.write_to(self.outputfile)
+
+        self.assertTrue(os.path.exists(self.outputfile))
+
+        with open(self.outputfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+            line5 = lines[5].rstrip()
+        self.assertEqual(len(lines), 26)
+        self.assertEqual(line0, "# Correlation Length lc")
+        self.assertEqual(int(line5), -11)
+
+    @classmethod
+    def tearDownClass(cls):
+        print("Tearing down...")
+
+        cls.outputfile = "./datawrite/param.par"
+        os.remove(cls.outputfile)
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
