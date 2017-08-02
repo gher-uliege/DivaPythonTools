@@ -1,5 +1,6 @@
 import pydiva2d
 import unittest
+import os
 
 class TestMeshMethods(unittest.TestCase):
 
@@ -14,6 +15,8 @@ class TestMeshMethods(unittest.TestCase):
         self.paramfile = "./data/param_mesh.par"
         self.noparamfile = "./data/noparam_mesh.par"
         self.divadir = "/home/ctroupin/Software/DIVA/DIVA-diva-4.7.1/"
+        self.nogeojsonfile = "./nodata/mesh.js"
+        self.geojsonfile = "./data/mesh.js"
 
     def test_init_empty(self):
         """
@@ -78,6 +81,44 @@ class TestMeshMethods(unittest.TestCase):
         self.assertEqual(mesh.nnodes, 16)
         self.assertEqual(mesh.ninterfaces, 34)
         self.assertEqual(mesh.nelements, 19)
+
+    def test_write_nonexisting_geojson(self):
+        """
+        Check if geoJSON is properly created from contours
+        :param filename: path to the file to be created
+        :type filename: str
+        """
+        SquareMesh = pydiva2d.Diva2DMesh().read_from(self.meshfile, self.meshtopofile)
+        self.assertRaises(FileNotFoundError,
+                          lambda: SquareMesh.to_geojson(filename=self.nogeojsonfile))
+
+    def test_write_geojson(self):
+        """
+        Check if geoJSON is properly created from contours
+        :param filename: path to the file to be created
+        :type filename: str
+        """
+        SquareMesh = pydiva2d.Diva2DMesh().read_from(self.meshfile, self.meshtopofile)
+        SquareMesh.to_geojson(filename=self.geojsonfile)
+
+        self.assertTrue(os.path.exists(self.geojsonfile))
+
+        with open(self.geojsonfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+
+        self.assertEqual(line0, "var mesh = {")
+        self.assertEqual(len(lines), 6965)
+
+        SquareMesh.to_geojson(filename=self.geojsonfile, varname="divamesh")
+        self.assertTrue(os.path.exists(self.geojsonfile))
+
+        with open(self.geojsonfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+
+        self.assertEqual(line0, "var divamesh = {")
+        self.assertEqual(len(lines), 6965)
 
 
 

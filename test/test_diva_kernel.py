@@ -8,7 +8,7 @@ class TestDivaKernel(unittest.TestCase):
         # Create contour
         xc = [0, 10, 10, 0]
         yc = [0, 0, 10, 10]
-        contour = pydiva2d(xc, yc)
+        contour = pydiva2d.Diva2DContours(xc, yc)
         # Create parameter file
 
         # Create datafile

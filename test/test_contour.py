@@ -1,7 +1,7 @@
 import numpy as np
 import pydiva2d
 import unittest
-
+import os
 
 class TestContourMethods(unittest.TestCase):
 
@@ -12,6 +12,8 @@ class TestContourMethods(unittest.TestCase):
         self.yy = np.array(((0.3, 1., 3.4, 1.8), (-1., -1.4, 2.2, 3.3)))
         self.coastfile = "../data/coast.cont"
         self.nocoastfile = "../data/nocoast.cont"
+        self.nogeojsonfile = "./nodata/contours.js"
+        self.geojsonfile = "./data/contours.js"
 
     def test_init(self):
         """
@@ -63,14 +65,46 @@ class TestContourMethods(unittest.TestCase):
         self.assertRaises(FileNotFoundError,
                           lambda: pydiva2d.Diva2DContours().read_from(self.nocoastfile))
 
-    def test_create_geojson(self, filename):
+    def test_write_nonexisting_geojson(self):
         """
         Check if geoJSON is properly created from contours
         :param filename: path to the file to be created
         :type filename: str
         """
+        contour = pydiva2d.Diva2DContours(self.xlist, self.ylist)
+        self.assertRaises(FileNotFoundError,
+                          lambda: contour.to_geojson(filename=self.nogeojsonfile))
 
-    def
+    def test_write_geojson(self):
+        """
+        Check if geoJSON is properly created from contours
+        :param filename: path to the file to be created
+        :type filename: str
+        """
+        contour = pydiva2d.Diva2DContours(self.xlist, self.ylist)
+        contour.to_geojson(filename=self.geojsonfile)
+
+        self.assertTrue(os.path.exists(self.geojsonfile))
+
+        with open(self.geojsonfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+
+        self.assertEqual(line0, "var contours = {")
+        self.assertEqual(len(lines), 41)
+
+        contour.to_geojson(filename=self.geojsonfile, varname="divacont")
+        self.assertTrue(os.path.exists(self.geojsonfile))
+
+        with open(self.geojsonfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+
+        self.assertEqual(line0, "var divacont = {")
+        self.assertEqual(len(lines), 41)
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

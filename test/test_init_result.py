@@ -24,10 +24,9 @@ class TestResultMethods(unittest.TestCase):
         #self.assertIsNone(self.Results.error)
 
     def test_make(self):
-        results = pydiva2d.Diva2DResults()\
-        make(self.divadir, datafile=self.datafile,
-                     paramfile=self.paramfile,
-                     contourfile=self.coastfile)
+        results = pydiva2d.Diva2DResults().make(self.divadir, datafile=self.datafile,
+                                                paramfile=self.paramfile,
+                                                contourfile=self.coastfile)
 
         self.assertEqual(results.x[10], 28.)
         self.assertEqual(results.y[20], 42.)

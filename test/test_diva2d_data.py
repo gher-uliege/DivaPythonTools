@@ -1,9 +1,7 @@
 import numpy as np
 import pydiva2d
-import importlib
+import os
 import unittest
-
-importlib.reload(pydiva2d)
 
 
 class TestDivaData(unittest.TestCase):
@@ -19,6 +17,8 @@ class TestDivaData(unittest.TestCase):
         self.yarray2 = np.array((1., 10., -1, 3.))
         self.datarray = np.array((7., 8., 9.))
         self.weightarray = np.array((1., 1., 1.))
+        self.nogeojsonfile = "./nodata/data.js"
+        self.geojsonfile = "./data/data.js"
 
     def test_init_data(self):
         Data0 = pydiva2d.Diva2DData()
@@ -50,6 +50,43 @@ class TestDivaData(unittest.TestCase):
         # Dimension mismatch
         with self.assertRaises(Exception) as dim:
             Data4 = pydiva2d.Diva2DData(self.xarray, self.yarray2, self.datalist, self.weightlist)
+
+    def test_write_nonexisting_geojson(self):
+        """
+        Check if geoJSON is properly created from data
+        :param filename: path to the file to be created
+        :type filename: str
+        """
+        data = pydiva2d.Diva2DData(self.xarray, self.yarray, self.datalist, self.weightlist)
+        self.assertRaises(FileNotFoundError,
+                          lambda: data.to_geojson(filename=self.nogeojsonfile))
+
+    def test_write_geojson(self):
+        """
+        Check if geoJSON is properly created from data
+        :param filename: path to the file to be created
+        :type filename: str
+        """
+        data = pydiva2d.Diva2DData(self.xarray, self.yarray, self.datalist, self.weightlist)
+        data.to_geojson(filename=self.geojsonfile)
+
+        self.assertTrue(os.path.exists(self.geojsonfile))
+
+        with open(self.geojsonfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+
+        self.assertEqual(line0, "var data = {")
+        self.assertEqual(len(lines), 47)
+
+        data.to_geojson(filename=self.geojsonfile, varname='divadata')
+
+        with open(self.geojsonfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+
+        self.assertEqual(line0, "var divadata = {")
+        self.assertEqual(len(lines), 47)
 
 
 if __name__ == '__main__':

@@ -20,6 +20,8 @@ class TestResultMethods(unittest.TestCase):
         self.resultfile = "./data/resultsquare.nc"
         self.noresultfile = "./data/noresult.nc"
         self.outputfile = "./data/testresult.nc"
+        self.nogeojsonfile = "./nodata/results.js"
+        self.geojsonfile = "./data/results.js"
         
     def test_init(self):
         """
@@ -103,6 +105,54 @@ class TestResultMethods(unittest.TestCase):
         self.assertAlmostEqual(results.analysis.data.mean(), -70.0825347900)
         self.assertAlmostEqual(results.analysis.data.max(), -3.5384511948)
         self.assertEqual(results.analysis.data.min(), -99.)
+
+    def test_write_nonexisting_geojson(self):
+        """
+        Check if geoJSON is properly created from contours
+        :param filename: path to the file to be created
+        :type filename: str
+        """
+        results = pydiva2d.Diva2DResults().read_from(self.resultfile)
+        self.assertRaises(FileNotFoundError,
+                          lambda: results.to_geojson(filename=self.nogeojsonfile))
+
+    def test_write_geojson(self):
+        """
+        Check if geoJSON is properly created from contours
+        :param filename: path to the file to be created
+        :type filename: str
+        """
+        results = pydiva2d.Diva2DResults().read_from(self.resultfile)
+        results.to_geojson(filename=self.geojsonfile)
+
+        self.assertTrue(os.path.exists(self.geojsonfile))
+
+        with open(self.geojsonfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+
+        self.assertEqual(line0, "var results = {")
+        self.assertEqual(len(lines), 2058)
+
+        results.to_geojson(filename=self.geojsonfile, varname="divaresults")
+        self.assertTrue(os.path.exists(self.geojsonfile))
+
+        with open(self.geojsonfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+
+        self.assertEqual(line0, "var divaresults = {")
+        self.assertEqual(len(lines), 2058)
+
+        results.to_geojson(filename=self.geojsonfile, levels=np.linspace(0, 0.5, 10))
+        self.assertTrue(os.path.exists(self.geojsonfile))
+
+        with open(self.geojsonfile) as f:
+            lines = f.readlines()
+            line0 = lines[0].rstrip()
+
+        self.assertEqual(line0, "var results = {")
+        self.assertEqual(len(lines), 2048)
 
     def tearDown(self):
         if os.path.exists(self.outputfile):
