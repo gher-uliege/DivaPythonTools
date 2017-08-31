@@ -1,14 +1,30 @@
+[![DOI](https://zenodo.org/badge/44103456.svg)](https://zenodo.org/badge/latestdoi/44103456)
+
 # Diva Python Tools
 
-A set of modules to 
-1. prepare the Diva input files,
-2. run the Diva interpolation tool,
-3. read the output files (analysis, finite-element mesh),
-4. plot input and output.
+A set of python modules to help users with
+1. the preparation of the Diva input files: data, contours, parameters;
+2. the execution of the Diva interpolation tool,
+3. the reading of output files (analysis, finite-element mesh),
+4. the input and output plotting.
 
-## Modules
+## Getting started 
 
-The main modules are [pydiva2d](./pydiva2d.py) and [pydiva4d](./pydiva4D.py), which define the classes for the 2D and 4D version of Diva, respectively.
+### Prerequisites
+
+The [Diva](https://github.com/gher-ulg/diva) interpolation tool has to be installed and compiled on your machine. See the related [documentation](https://github.com/gher-ulg/DIVA/blob/master/README.md#installing) for the installation.
+
+### Installing
+
+Clone the package:
+```bash
+git clone git@github.com:gher-ulg/DivaPythonTools.git
+```
+or download the latest stable [release](https://github.com/gher-ulg/DivaPythonTools/releases).
+
+## Module description
+
+The main modules are [`pydiva2d`](./pydiva2d.py) and [`pydiva4d`](./pydiva4D.py), which define the classes for the 2D and 4D version of Diva, respectively.
 
 ### pydiva2d
 
@@ -45,6 +61,12 @@ Pseudo-color plot of the gridded field obtained by the interpolation.
 ### Combined information
 Data, contours, mesh and analysis on the same figure.     
 ![Combined](./figures/AnalysisMeshData.png)
+
+## Acknowledgments
+
+[Diva](https://github.com/gher-ulg/DIVA) has benefited from the participants to the feedback and the numerous comments from the users, especially those who participated to the Diva workshops.
+
+The present module was initiated in the frame of [SeaDataCloud](SeaDataCloud) project.  
 
 
 
