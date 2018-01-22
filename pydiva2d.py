@@ -1465,7 +1465,7 @@ class Diva2DMesh(object):
         try:
             with open(os.path.join(filename), 'w') as f:
                 f.write("".join(("var ", varname, " = ")))
-                out = json.dumps(geojsonmesh, indent=2, separators=(',', ': '))
+                out = json.dumps(geojsonmesh, indent=0, separators=(',', ': '))
                 f.write(out)
 
         except FileNotFoundError:
