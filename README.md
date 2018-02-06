@@ -64,7 +64,7 @@ Data, contours, mesh and analysis on the same figure.
 
 ## Acknowledgments
 
-[Diva](https://github.com/gher-ulg/DIVA) has benefited from the participants to the feedback and the numerous comments from the users, especially those who participated to the Diva workshops.
+[Diva](https://github.com/gher-ulg/DIVA) developments have benefited from the users' feedback and numerous comments, especially during the editions of the Diva workshops.
 
 The present module was initiated in the frame of [SeaDataCloud](SeaDataCloud) project.  
 
