@@ -22,6 +22,17 @@ git clone git@github.com:gher-ulg/DivaPythonTools.git
 ```
 or download the latest stable [release](https://github.com/gher-ulg/DivaPythonTools/releases).
 
+Inside DivaPythonTools directory execute:
+```python
+pip install -r requirements.txt
+python setup.py install
+```
+
+After this you should use it as:
+```python
+from pydiva import pydiva2d, pydiva4d
+```
+
 ## Module description
 
 The main modules are [`pydiva2d`](./pydiva2d.py) and [`pydiva4d`](./pydiva4D.py), which define the classes for the 2D and 4D version of Diva, respectively.
