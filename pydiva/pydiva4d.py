@@ -57,6 +57,8 @@ class Diva4Dfiles(object):
             self.varlist = os.path.join(self.diva4ddir, 'varlist')
             self.yearlist = os.path.join(self.diva4ddir, 'yearlist')
             self.contourdepth = os.path.join(self.diva4ddir, 'input/contour.depth')
+            self.topography = os.path.join(self.diva4ddir, './input/topo.grd')
+            self.topoinfo = os.path.join(self.diva4ddir, './input/TopoInfo.dat')
             self.ncdfinfo = os.path.join(self.diva4ddir, 'ncdfinfo')
             self.param = os.path.join(self.diva4ddir, 'input/param.par')
             logger.info("Creating Diva 4D file names and paths")
