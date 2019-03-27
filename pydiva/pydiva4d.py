@@ -1,4 +1,5 @@
-from pydiva2d import *
+from __future__ import absolute_import
+from .pydiva2d import *
 
 __author__ = 'ctroupin'
 """User interface for diva in python
