@@ -1,4 +1,7 @@
-[![DOI](https://zenodo.org/badge/44103456.svg)](https://zenodo.org/badge/latestdoi/44103456)
+[![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)[![DOI](https://zenodo.org/badge/44103456.svg)](https://zenodo.org/badge/latestdoi/44103456)![Gitea Last Commit](https://img.shields.io/gitea/last-commit/gher-uliege/DivaPythonTools)![GitHub language count](https://img.shields.io/github/languages/count/gher-uliege/DivaPythonTools)![GitHub top language](https://img.shields.io/github/languages/top/gher-uliege/DivaPythonTools)
+
+
+
 
 # Diva Python Tools
 
