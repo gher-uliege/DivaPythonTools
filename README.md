@@ -15,7 +15,7 @@ A set of python modules to help users with
 
 ### Prerequisites
 
-The [Diva](https://github.com/gher-ulg/diva) interpolation tool has to be installed and compiled on your machine. See the related [documentation](https://github.com/gher-ulg/DIVA/blob/master/README.md#installing) for the installation.
+The [DIVA](https://github.com/gher-uliege/DIVA) interpolation tool has to be installed and compiled on your machine. See the related [documentation](https://github.com/gher-ulg/DIVA/blob/master/README.md#installing) for the installation.
 
 ### Installing
 
