@@ -1,4 +1,4 @@
-# Copyright (C) 2008-2010 Alexander Barth <barth.alexander@gmail.com>.
+# Copyright (C) 2008-2018 Alexander Barth <barth.alexander@gmail.com>.
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Affero General Public License as published
@@ -9,12 +9,12 @@
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU Affero General Public License for more details.
-#                                                                           
+#
 # You should have received a copy of the GNU Affero General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 '''
-Python module to read and write GHER binary files. The origine of this 
+Python module to read and write GHER binary files. The origine of this
 fileformat are the Fortran function ureadc and uwritec.
 '''
 
@@ -200,11 +200,11 @@ class TestGHERFile(unittest.TestCase):
 
         data2 = GHERFile('testpy.dat').load()
 
-        print data
-        print data2
+        print(data)
+        print(data2)
 
     def test_write(self):
-        '''Test case for saving and loading a vector of data in a GHER file 
+        '''Test case for saving and loading a vector of data in a GHER file
         using low-level API.'''
 
         data = [100.0, 33.]
